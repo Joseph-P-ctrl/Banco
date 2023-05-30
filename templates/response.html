@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bancos</title>
+</head>
+<body>
+    <h1>Resumen Movimientos</h1>
+    <label for="movimientos"></label>
+    {% if data.movements|length > 0  %}
+    <span>Fallo en el archivo </span>
+    <ul>
+        {% for item in data.movements %}
+          <li>{{ item["monto"] }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    <!-- Transferencias-->
+    <h1>Resumen Transfers</h1>
+    <label for="tranfers"></label>
+    {% if data.transfers|length>0  %}
+    <span>Registros no encontrados</span>
+    {% for error in data.transfers %}
+    <table>
+        <thead>
+            <tr>
+                <td>Fecha</td>
+                <td>Ordenante</td>
+                <td>Monto</td>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in error.items %}
+        <tr>
+            <td>{{ item["fecha"] }}</td>
+            <td>{{ item["ordenante"] }}</td>
+            <td>{{ item["monto"] }}</td>
+        </tr>
+          
+        {% endfor %}
+
+            
+        </tbody>
+    </table>
+    {% endfor %} 
+    
+    
+    {% endif %}
+    
+<!--Providers-->
+    <h1>Resumen Providers</h1>
+    <label for="providers"></label>
+    {% if data.providers|length>0  %}
+    <span>Registros no encontrados</span>
+    {% for error in data.providers %}
+    <table>
+        <thead>
+            <tr>
+                <td>Fecha</td>
+                <td>Ordenante</td>
+                <td>Monto</td>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in error.items %}
+        <tr>
+            <td>{{ item["fecha"] }}</td>
+            <td>{{ item["ordenante"] }}</td>
+            <td>{{ item["monto"] }}</td>
+        </tr>
+          
+        {% endfor %}
+
+            
+        </tbody>
+    </table>
+    {% endfor %} 
+    
+    
+    {% endif %}
+
+<!--Interbanks-->
+    <h1>Resumen Interbancarios</h1>
+    <label for="interbanks"></label>
+    {% if data.interbanks|length>0  %}
+    <span>Registros no encontrados</span>
+    {% for error in data.interbanks %}
+    <table>
+        <thead>
+            <tr>
+                <td>Ordenante</td>
+                <td>Monto</td>
+                <td>Operacion</td>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in error.items %}
+        <tr>
+            <td>{{ item["ordenante"] }}</td>
+            <td>{{ item["monto"] }}</td>
+            <td>{{ item["operacion"] }}</td>
+        </tr>
+          
+        {% endfor %}
+
+            
+        </tbody>
+    </table>
+    {% endfor %} 
+    
+    
+    {% endif %}
+
+
+
+
+</body>
+</html>
