@@ -23,12 +23,14 @@ class BankService:
      
     def __init__(self):
         self.errors = []
+        self.error_message=""
 
     def process_movements(self, movimientos):
         self.movimientos = pd.read_excel(movimientos) 
         error = Error(MOVIMIENTOS)
         if (len(self.movimientos.columns)<6):
-            error.message = "Columnas no encontradas, verifique archivo movimientos"
+            error.message = "Archivo Movimientos: Columnas no encontradas, elimine cabeceras innecesarias"
+            return
         column_name = "Monto"        
         self.movimientos[column_name] = self.movimientos[column_name].astype(str).str.replace(",", "")
         self.movimientos["Monto"] = pd.to_numeric(self.movimientos["Monto"],errors='coerce')
@@ -40,9 +42,9 @@ class BankService:
         
         transferencias = pd.read_excel(transferFile)
         error = Error(TRANSFER)
-        if len(transferencias.columns) == 0:
-            error.message = "Columnas no ubicadas, verifique archivo transfers"
-            return error
+        if len(transferencias.columns) < 10:
+            error.message = "Archivo Transfers: Columnas no ubicadas, elimine cabeceras innecesarias"
+            return
         transferencias["Monto abonado"] = transferencias["Monto abonado"].astype(str).str.replace(",", "")
         transferencias["Monto abonado"] = pd.to_numeric(transferencias["Monto abonado"],errors='coerce')
         transferencias = transferencias.loc[transferencias["Monto abonado - Moneda"]=="S/ "].copy()
@@ -53,15 +55,16 @@ class BankService:
             #print("Monto abonado...", row["Monto abonado"])
             #print("Fecha...", row["Fecha de abono"])
             fecha = datetime.strptime(row["Fecha de abono"], "%d/%m/%Y")
-            reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha)].copy()
+            reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha)]
             
             if len(reg)>1:
                 error.message= "Mas de una coincidencia"
                 error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "fecha":row["Fecha de abono"]})   
             elif(len(reg)==1):
                 #print("reg",row["Ordenante"])
-                reg["Referencia"] = row["Ordenante"]
-                self.movimientos.update(reg)
+                self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha), "Referencia"] = row["Ordenante"]
+                #reg["Referencia"] = row["Ordenante"]
+                #self.movimientos = self.movimientos.update(reg)
             else:
                  error.message = "Registros no ubicados"
                  error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "fecha":row["Fecha de abono"]})   
@@ -71,6 +74,9 @@ class BankService:
     def process_providers( self,providersFile):
         try:
             proveedores = pd.read_excel(providersFile)
+            if (len(proveedores.columns)<13):
+                error.message = "Archivo Providers: Columnas no encontradas, elimine cabeceras innecesarias"
+                return
             proveedores["Monto abonado"] = proveedores["Monto abonado"].astype(str).str.replace(",", "")
             proveedores["Monto abonado"] = pd.to_numeric(proveedores["Monto abonado"],errors='coerce')
             proveedores["Ordenante - Nombre o Razón Social"]=proveedores["Ordenante - Nombre o Razón Social"].str.strip()
@@ -80,18 +86,22 @@ class BankService:
             
             for index, row in group_proveedores.iterrows():
                 fecha = datetime.strptime(index[1], "%d/%m/%Y")
-                reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha)].copy()
+                reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha)]
         
                 if len(reg)>1:
                     error.message = "Mas de una coincidencia"
                     error.addItem({"ordenante": index[0], "monto": row["Monto abonado"], "fecha":fecha})
                 elif(len(reg)==1):
                     #print("reg",index[0])
-                    reg["Referencia"] = index[0]
-                    self.movimientos.update(reg)
+                    self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha), "Referencia"] = index[0]
+                    # reg["Referencia"] = index[0]
+                    # self.movimientos = self.movimientos.update(reg)
+                    #print('actualiza reg', reg)
+                    
                 else:
                     error.message = "Registros no ubicados"
                     error.addItem({"ordenante": index[0], "monto": row["Monto abonado"], "fecha":fecha})   
+            
             if (error.message!=""):
                 self.errors.append(error)
         except Exception as ex:
@@ -102,6 +112,9 @@ class BankService:
     def process_interbanks( self,interbankFile):
         try:
             interbancarias = pd.read_excel(interbankFile)
+            if (len(interbancarias.columns)<7):
+                error.message = "Archivo Interbanks: Columnas no encontradas, elimine cabeceras innecesarias"
+                return
             interbancarias["Monto abonado"] = interbancarias["Monto abonado"].astype(str).str.replace(",", "")
             interbancarias["Monto abonado"] = pd.to_numeric(interbancarias["Monto abonado"],errors='coerce')
             interbancarias = interbancarias.loc[interbancarias["Monto abonado - Moneda"]=="S/ "].copy()
@@ -118,8 +131,9 @@ class BankService:
                     error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "operacion":num_operacion})
                 elif(len(reg)==1):
                     #print("reg",row["Ordenante"])
-                    reg["Referencia"] = row["Ordenante"]
-                    self.movimientos.update(reg)
+                    self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Operación - Número"].astype(str).str[-4:]==num_operacion[-4:]), "Referencia"] = row["Ordenante"]
+                    # reg["Referencia"] = row["Ordenante"]
+                    # self.movimientos = self.movimientos.update(reg)
                 else:
                     error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "operacion":num_operacion})   
             if (error.message!=""):

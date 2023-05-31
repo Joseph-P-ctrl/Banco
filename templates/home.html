@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Bancos</title>
+</head>
+<body>
+   
+    <div class="container text-center">
+        <h1>Cuadre de Bancos</h1>
+        <span class="error">
+            {% if error_message %}
+            <p>Error: {{ error_message }}</p>
+        {% endif %}
+        </span>
+        
+        <form method="POST" action="/" enctype="multipart/form-data">
+            
+            
+            
+            <div class="row justify-content-md-center">
+                <div class="col col-lg-6">
+                    <div>
+                        <div class=" box input-group mb-3">
+                            <input type="file" class="form-control" name="file" id="mov" accept=".xlsx" required>
+                            <label class="input-group-text" for="mov">Movimientos</label>
+                          </div>
+                    </div>
+                    
+
+                    
+
+                </div>
+            </div>
+
+            <div class="row align-items-start">
+                <div class="col">
+                    <div >
+                        <div  class="box input-group mb-3">
+                        
+                            <input type="file" class="form-control" name="file" id="pro" accept=".xlsx">
+                            <label class="input-group-text" for="pro">Providers:</label>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="col">
+                    <div>
+                        <div  class="box input-group mb-3">
+                        
+                            <input type="file" class="form-control" name="file" id="int"  accept=".xlsx">
+                            <label class="input-group-text" for="int">Interbanks:</label>
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="col">
+                    <div>
+
+                        <div  class="box input-group mb-3">
+                            
+                            <input type="file" class="form-control" name="file" id="tra" accept=".xlsx" >
+                            <label class="input-group-text" for="tra">Transfers:</label>
+                        </div>
+                    </div>
+                </div>
+              </div>
+
+              <div class="row">
+                <div class="col">
+
+                    <div class="d-grid gap-2 col-6 mx-auto">
+                        <input class="btn btn-primary" type="submit" value="Subir">
+                        
+                      </div>
+
+                  
+                </div>
+                
+            </div>
+    </form>
+
+        
+      </div>
+
+      
+
+    
+</body>
+</html>
