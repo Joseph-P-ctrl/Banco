@@ -9,3 +9,8 @@
 .error {
     color: red;
 }
+
+.card{
+    width: 100%;
+    margin: 1px solid red;
+}

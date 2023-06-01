@@ -1,5 +1,9 @@
 from flask import Flask, jsonify, render_template, request, send_file, session, redirect, url_for
-from BankService import BankService
+from AccountService import AccountService
+from InterbankService import InterbankService
+from ProviderService import ProviderService
+from TransferService import TransferService
+
 from io import BytesIO
 from flask_session import Session
 from flask_caching import Cache
@@ -12,9 +16,9 @@ Session(app)
 cache = Cache(app, config={'CACHE_TYPE': 'simple'})
 
 TRANSFER = "TRANSFER"
-PROVIDERS = "PROVIDERS"
-INTERBANK = "INTERBANK"
-MOVIMIENTOS = "MOVIMIENTOS"
+PROVIDERS = "PROVEEDOR"
+INTERBANK = "INTERBAN"
+CUENTA = "CUENTA"
 
 @app.route('/', methods=['POST','GET'])
 def home():
@@ -27,7 +31,10 @@ def home():
             return render_template('home.html', error_message= 'Debe subir por lo menos un archivo.')
         else:
             try:
-                bankService = BankService()    
+                accountService = AccountService()    
+                transferService = TransferService()
+                interbankService = InterbankService()
+                providerService = ProviderService()
                 for file in files:
                     # Read the content of each file
                     #content = file.read().decode().strip()
@@ -35,24 +42,24 @@ def home():
                     nombre =  file.filename.upper() 
                     
                     if (nombre != ""):
-                        if MOVIMIENTOS in nombre:
-                            bankService.process_movements(file)
+                        if CUENTA in nombre:
+                            accountService.process_movements(file)
+                           
                         elif TRANSFER in nombre:  
-                            bankService.process_transfers(file)
+                            transferService.setMovimientos(accountService.movimientos)
+                            transferService.process_transfers(file)
                         elif INTERBANK in nombre:
-                            bankService.process_interbanks(file)
+                            interbankService.setMovimientos(accountService.movimientos)
+                            interbankService.process_interbanks(file)
                         elif PROVIDERS in nombre:
-                            bankService.process_providers(file)    
+                            providerService.setMovimientos(accountService.movimientos)
+                            providerService.process_providers(file)    
                             
                         else:
                             raise Exception("Archivo no ubicado")    
-                movements =     [project for project in bankService.errors if project.category == MOVIMIENTOS]
-                transfers =  [project for project in bankService.errors if project.category == TRANSFER]
-                interbanks = [project for project in bankService.errors if project.category == INTERBANK]
-                providers = [project for project in bankService.errors if project.category == PROVIDERS]
                 
-                cache.set('movimientos', bankService.movimientos.to_json(), timeout=600)
-                resumen = {"movements": movements, "providers": providers, "transfers": transfers, "interbanks": interbanks}
+                cache.set('movimientos', accountService.movimientos.to_json(), timeout=600)
+                resumen = {"movements": accountService.error, "providers": providerService.error, "transfers": transferService.error, "interbanks": interbankService.error}
                 cache.set('resumen', resumen)
                 return redirect(url_for('upload'))
                 

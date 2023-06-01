@@ -1,0 +1,71 @@
+import os
+import pandas as pd
+from datetime import datetime
+
+class MyCustomException(Exception):
+        pass
+
+
+class Error:
+    def __init__(self):
+        self.message = ""
+        self.items = []
+    def addItem(self, item):
+        self.items.append(item)    
+        
+
+class ProviderService:
+     
+    def __init__(self):
+        self.error= Error()
+
+    def setMovimientos(self,movimientos):
+        self.movimientos = movimientos
+
+    def process_providers( self,providersFile):
+        try:
+           
+            proveedores = pd.read_excel(providersFile)
+          
+            if (len(proveedores.columns)<13):
+                self.error.message = "Archivo Providers: Columnas no encontradas, elimine cabeceras innecesarias"
+                return
+            
+            if "Monto abonado" not in proveedores.columns:
+                self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, elimine cabeceras innecesarias"
+                return
+            proveedores["Monto abonado"] = proveedores["Monto abonado"].astype(str).str.replace(",", "")
+            proveedores["Monto abonado"] = pd.to_numeric(proveedores["Monto abonado"],errors='coerce')
+            proveedores["Ordenante - Nombre o Razón Social"]=proveedores["Ordenante - Nombre o Razón Social"].str.strip()
+            new_proveedores = proveedores[["Monto abonado", "Ordenante - Nombre o Razón Social","Fecha de pago"]].copy()
+            group_proveedores = new_proveedores.groupby(["Ordenante - Nombre o Razón Social","Fecha de pago"]).sum().round(2)
+            
+
+            for index, row in group_proveedores.iterrows():
+                fecha = datetime.strptime(index[1], "%d/%m/%Y").date()
+                monto_abonado = float(row["Monto abonado"])
+                
+                reg = self.movimientos.loc[(self.movimientos["Monto"]==monto_abonado) & (self.movimientos["Fecha"]==fecha)]
+                # if (monto_abonado==3.81):
+                #     print(fecha, monto_abonado, reg, type(fecha))
+                #     print(self.movimientos.loc[(self.movimientos["Monto"]==monto_abonado) ])
+                #     fecha = datetime.strptime("02/05/2023", "%d/%m/%Y").date()
+                #     fecha = datetime.strptime("2023-05-02", "%Y-%m-%d").date()
+                #     print(self.movimientos.loc[self.movimientos["Fecha"]==fecha ])
+                if len(reg)>1:
+                    self.error.message = "Mas de una coincidencia"
+                    self.error.addItem({"ordenante": index[0], "monto": monto_abonado, "fecha":fecha})
+                elif(len(reg)==1):
+                    #print("reg",index[0])
+                    self.movimientos.loc[(self.movimientos["Monto"]==monto_abonado) & (self.movimientos["Fecha"]==fecha), "Referencia"] = index[0]
+                    # reg["Referencia"] = index[0]
+                    # self.movimientos = self.movimientos.update(reg)
+                    #print('actualiza reg', reg)
+                    
+                else:
+                    self.error.message = "Registros no ubicados"
+                    self.error.addItem({"ordenante": index[0], "monto": monto_abonado, "fecha":fecha})   
+            
+        except Exception as ex:
+            self.error.message = str(ex)
+            
