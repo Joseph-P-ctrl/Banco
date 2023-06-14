@@ -21,7 +21,8 @@ class AccountService:
      
     def process_movements(self, movimientos):
         self.movimientos = pd.read_excel(movimientos) 
-       
+        
+      
         if (len(self.movimientos.columns)<6):
             self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, elimine cabeceras innecesarias"
             return
@@ -29,6 +30,7 @@ class AccountService:
             self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, elimine cabeceras innecesarias"
             return
         column_name = "Monto"        
+       
         self.movimientos[column_name] = self.movimientos[column_name].astype(str).str.replace(",", "")
         self.movimientos["Monto"] = pd.to_numeric(self.movimientos["Monto"],errors='coerce')
         self.movimientos["Fecha"] = pd.to_datetime(self.movimientos["Fecha"], dayfirst=True)

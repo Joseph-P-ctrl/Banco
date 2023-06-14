@@ -77,8 +77,10 @@ def upload():
     if request.method == 'POST':
         movimientos_json = cache.get("movimientos")
         movimientos = pd.read_json(movimientos_json)
+        movimientos["Fecha"] = pd.to_datetime(movimientos['Fecha'])
         excel_file = BytesIO()
-
+        
+        #movimientos["Fecha"] = movimientos["Fecha"].dt.strftime('%d-%m-%Y')
         movimientos.to_excel(excel_file, index=False)
         excel_file.seek(0)
         # Send the file-like object as a response with appropriate headers
@@ -90,7 +92,7 @@ def upload():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+   #app.run(host='0.0.0.0')
+   app.run(debug=True)
 
     
