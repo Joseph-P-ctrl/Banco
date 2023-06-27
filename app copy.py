@@ -8,12 +8,10 @@ from io import BytesIO
 from flask_session import Session
 from flask_caching import Cache
 from openpyxl import load_workbook
+import openpyxl
 
 
 import pandas as pd
-import openpyxl
-from openpyxl import Workbook
-
 app = Flask(__name__)
 app.secret_key = 'AldoAbril1978'
 app.config['SESSION_TYPE'] = 'filesystem'  # Store sessions on the file system
@@ -49,8 +47,8 @@ def home():
                     if (nombre != ""):
                         if CUENTA in nombre:
                             accountService.process_movements(file)
-                            
-                           
+                            # movimientosServicios = AccountService()
+                            # resutadoMovimiento= movimientosServicios.process_movements(file)
                         elif TRANSFER in nombre:  
                             transferService.setMovimientos(accountService.movimientos)
                             transferService.process_transfers(file)
@@ -64,10 +62,11 @@ def home():
                         else:
                             raise Exception("Archivo no ubicado"+nombre)    
                 
-                # cache.set('movimientos', accountService.movimientos.to_json(), timeout=600)
-                cache.set('movimientos', accountService.movimientos, timeout=600)
-                resumen = {"movements": accountService.error, "providers": providerService.error, "transfers": transferService.error, "interbanks": interbankService.error}
-                cache.set('resumen', resumen)
+                cache.set('movimientos', accountService.movimientos.to_json(), timeout=600)
+                
+                # cache.set('resutadoMovimiento',  resutadoMovimiento.to_json(), timeout=600)
+                # resumen = {"movements": accountService.error, "providers": providerService.error, "transfers": transferService.error, "interbanks": interbankService.error}
+                # cache.set('resumen', resumen)
                 return redirect(url_for('upload'))
                 
             except Exception as e:
@@ -82,31 +81,47 @@ def home():
 def upload():
     
     if request.method == 'POST':
-        movimientos = cache.get("movimientos")
-        movimientos["Fecha"] = pd.to_datetime(movimientos["Fecha"], format="%d/%m/%Y").dt.strftime("%d/%m/%Y")
-        
-                
+        resutadoMovimiento_json = cache.get("resutadoMovimiento")
+        resutadoMovimientocon = pd.read_json(resutadoMovimiento_json)
+        # movimientos["Fecha"] = pd.to_datetime(movimientos['Fecha'])
         excel_file = BytesIO()
-        movimientos.to_excel(excel_file, index=False)
-
-        # Cargar el archivo Excel con Openpyxl
+        
+        #movimientos["Fecha"] = movimientos["Fecha"].dt.strftime('%d-%m-%Y')
+        resutadoMovimientocon.to_excel(excel_file, index=False)
         workbook = openpyxl.load_workbook(excel_file)
-        worksheet = workbook.active 
-
-        # Ajustar el ancho de la columna "Fecha"
-        worksheet.column_dimensions["A"].width = 20  # Ajusta el ancho de la columna A
-        worksheet.column_dimensions["C"].width = 30  # Ajusta el ancho de la columna A
-        worksheet.column_dimensions["K"].width = 40  # Ajusta el ancho de la columna A
-        worksheet.column_dimensions["L"].width = 40  # Ajusta el ancho de la columna A
-
-       
-        workbook.save(excel_file)
-
+        sheet = workbook.active
+        sheet.column_dimensions['A'].width = 15  # Ajusta el ancho de la columna A a 15
+        sheet.column_dimensions['B'].width = 15  # Ajusta el ancho de la columna B a 20
+        sheet.column_dimensions['C'].width = 20  # Ajusta el ancho de la columna B a 20
+        sheet.column_dimensions['D'].width = 20  # Ajusta el ancho de la columna B a 20
+        
+        
+        
         excel_file.seek(0)
         # Send the file-like object as a response with appropriate headers
         return send_file(excel_file, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name="movimientos.xlsx")
     else:
-        data = cache.get('resumen')  # Access the query parameter
+        data = cache.get('resutadoMovimientocon')  # Access the query parameter
+        data = pd.read_json(data)
+        arr = []
+        for  row in data.iterrows():
+            # print("aqui esta los datos ")
+            # print(row[1]["Fecha"])
+            # print(row["Fecha valuta"])
+            arr.append({
+                "Fecha": row[1]["Fecha"],
+                "Fecha valuta": row[1]["Fecha valuta"], 
+                "Descripción operación": row[1]["Descripción operación"],
+                "Saldo": row[1]["Saldo"],
+                "Sucursal - agencia": row[1]["Sucursal - agencia"],
+                "Operación - Número": row[1]["Operación - Número"],
+                "Operación - Hora": row[1]["Operación - Hora"],
+                "Usuario": row[1]["Usuario"],
+                "UTC": row[1]["UTC"],
+                "Referencia2": row[1]["Referencia2"],
+                "Referencia": row[1]["Referencia"],
+                })
+       
         return render_template("response.html", data= data)
 
 

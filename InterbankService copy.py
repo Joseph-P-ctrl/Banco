@@ -36,57 +36,31 @@ class InterbankService:
             interbancarias["Monto abonado"] = pd.to_numeric(interbancarias["Monto abonado"],errors='coerce')
             interbancarias = interbancarias.loc[interbancarias["Monto abonado - Moneda"]=="S/ "].copy()
             
-            referencias_no_encontradas = []
-
             for index, row in interbancarias.iterrows():
                 #buscar en movimientos
                 #print("Monto abonado...", row["Monto abonado"])
                 #print("Fecha...", row["Fecha de abono"])
                 num_operacion = str(row["N° Operación"])
-                
-                # print("abonados")
-                # #print(row["Monto abonado"])
-                # #print("montos")
-                
-                # print(self.movimientos["Monto"])
-                # print("numeros de operacin")
-                # print(self.movimientos["Operación - Número"])
-                # print(num_operacion[-4:])
-                # if(num_operacion[-8:]=='08159657'):
-                #     print("los datos son los siguientes:")
-                #     #print(self.movimientos["Monto"])
-                #     #print(self.movimientos["Operación - Número"])
-                #     print(num_operacion[-4:])
-                    
-                # else:
-                #     print("Referencias no encontradas:")
-               
-                #     print("no encuentrado")
-                    
-                # reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & 
-                #                            (self.movimientos["Operación - Número"].astype(str).str[-8:]==num_operacion[-8:])].copy()
-                reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"])]
-                
-                if(num_operacion[-4:]=='9657'):
-                    print("los datos son los siguientes:")
-                    print(reg)
-                # if(reg):
-                #     print("los datos de reg son:")
-                #     print(reg)
+                print(num_operacion)
+                reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Operación - Número"].astype(str).str[-4:]==num_operacion[-4:])].copy()
+                hy = self.movimientos["Monto"]==row["Monto abonado"];
+                hy1 = self.movimientos["Operación - Número"].astype(str).str[-4:]==num_operacion[-4:]
+                print(hy)
+                print(hy1)
+                print(reg)
                 if len(reg)>1:
                     self.error.message = "Mas de una coincidencia"
                     self.error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "operacion":num_operacion})
                 elif(len(reg)==1):
                     #print("reg",row["Ordenante"])
                     self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Operación - Número"].astype(str).str[-4:]==num_operacion[-4:]), "Referencia"] = row["Ordenante"]
-                    reg["Referencia"] = row["Ordenante"]
+                    # reg["Referencia"] = row["Ordenante"]
                     # self.movimientos = self.movimientos.update(reg)
                 else:
                     self.error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "operacion":num_operacion})   
              
-            
-
         except Exception as ex:
             self.error.message =str(ex)
 
 
+    

@@ -21,15 +21,19 @@ class TransferService:
         
     def setMovimientos(self,movimientos):
         self.movimientos = movimientos
+        
 
     def process_transfers(self, transferFile):
-        transferencias = pd.read_excel(transferFile)
+        transferencias = pd.read_excel(transferFile, header=2)
+        # self.transferencias= pd.read_excel(transferencias, header=2 )
+
+
         
         if len(transferencias.columns) < 10:
             self.error.message = "Archivo Transferencias: Columnas no ubicadas, elimine cabeceras innecesarias"
             return
         
-        if "Monto abonado" not in transferencias.columns:
+        if "Ordenante" not in transferencias.columns:
             self.error.message = "Archivo Transferencias: Columnas no encontradas, elimine cabeceras innecesarias"
             return
         transferencias["Monto abonado"] = transferencias["Monto abonado"].astype(str).str.replace(",", "")

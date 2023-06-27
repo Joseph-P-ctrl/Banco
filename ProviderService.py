@@ -25,14 +25,16 @@ class ProviderService:
     def process_providers( self,providersFile):
         try:
            
-            proveedores = pd.read_excel(providersFile)
+            proveedores = pd.read_excel(providersFile,   header=2 )
+            # proveedores= pd.read_excel(providersFile, skiprows=14)
+
           
             if (len(proveedores.columns)<13):
-                self.error.message = "Archivo Providers: Columnas no encontradas, elimine cabeceras innecesarias"
+                self.error.message = "Archivo Providers: Columnas no encontradas, elimine cabeceras innecesarias provecios "
                 return
             
-            if "Monto abonado" not in proveedores.columns:
-                self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, elimine cabeceras innecesarias"
+            if "Ordenante - Nombre o Razón Social" not in proveedores.columns:
+                self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, eliminepppppppp cabeceras innecesarias"
                 return
             proveedores["Monto abonado"] = proveedores["Monto abonado"].astype(str).str.replace(",", "")
             proveedores["Monto abonado"] = pd.to_numeric(proveedores["Monto abonado"],errors='coerce')
