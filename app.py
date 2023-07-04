@@ -85,18 +85,28 @@ def home():
 #     return render_template('./base-datos.html')
 def basedatos():
     if request.method == 'POST':
-        files = request.files.getlist('file')
+        files    = request.files.getlist('file')
+        
         try:
+            filtered_files = [x for x in files if x.filename!=""]
+                        
+            if len(filtered_files) < 1:
+                return render_template('base-datos.html', error_message= 'Debe subir por lo menos un archivo.')
+            mensaje_exito = 'Archivo subido correctamente.'
+            
             base_datos_service = BaseDatosService()  # Crear una instancia de la clase
             base_datos_service.GuardarAchivos(files)  # Llamar al método utilizando la instancia
-            return ('BIEN')
+            return render_template('base-datos.html',mensaje_exito=mensaje_exito)
                 
         except Exception as e:
             error_message = str(e)
             return render_template('base-datos.html', error_message= error_message)
 
     else:
+        nohay = 'Archivo subido correctamente.'
+        # return render_template('base-datos.html')
         return render_template('base-datos.html')
+
 
 
 @app.route('/upload', methods=['POST','GET'])

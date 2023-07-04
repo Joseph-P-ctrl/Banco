@@ -23,9 +23,8 @@ class BaseDatosService:
                     if os.path.exists(file_path):
                         os.remove(file_path)
                     file.save(file_path)
-            return 'Archivos subidos correctamente.'                                                                                                                                                  
-
+            
         except Exception as ex:
-            self.error.message =str(ex)
+            raise ex
 
 
