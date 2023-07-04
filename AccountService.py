@@ -82,7 +82,7 @@ class AccountService:
             self.error.message = "Archivo movimientos: Columnas no encontradas, elimine cabeceras innecesarias de movimientos"
             return
         if "Fecha" not in self.movimientos.columns:
-            self.error.message = "esty en las columnas : Columnas no encontradas, eliminemmmmmmmmmmm cabeceras innecesarias"
+            self.error.message = "Columnas no encontradas, elimine cabeceras innecesarias"
             return
  
         # column_name = "Fecha"        

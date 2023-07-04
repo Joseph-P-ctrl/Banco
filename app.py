@@ -66,7 +66,7 @@ def home():
                             providerService.process_providers(file)    
                             
                         else:
-                            raise Exception("Archivo no ubicado"+nombre)    
+                            raise Exception("Archivo no ubicado: "+nombre)    
                 
                 # cache.set('movimientos', accountService.movimientos.to_json(), timeout=600)
                 cache.set('movimientos', accountService.movimientos, timeout=600)
@@ -133,7 +133,7 @@ def upload():
 
 
 if __name__ == '__main__':
-   #app.run(host='0.0.0.0')
-   app.run(debug=True)
+   app.run(host='0.0.0.0')
+   #app.run(debug=True)
 
     
