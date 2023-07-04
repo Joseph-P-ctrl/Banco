@@ -15,44 +15,7 @@
             width: 50px;
             height: 50px;
         }
-        nav {
-    background-color: #6fbde8;
-    padding: 10px;
-}
-
-nav ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-}
-
-nav ul li {
-    display: inline-block;
-    margin-right: 20px;
-    font-size: 26px; /* Ajusta el tamaño de letra aquí */
-    color: #FFFF;
-    border-bottom: 4px solid #037940; /* Agrega una 
-}
-
-
-nav ul li {
-     border-bottom: 4px solid #037940; /* Agrega una 
-    display: inline-block;
-    margin-right: 10px;
-    font-size: 26px; /* Ajusta el tamaño de letra aquí */
-    color: #FFFF;
-}
-
-
-nav ul li a:hover {
-    color: #ffffff;
-}
-nav ul li a {
-    text-decoration: none;
-    color: white;
-    font-size: 26px; /* Ajusta el tamaño de letra aquí */
-}
-
+    
 
     </style>
   <script>
@@ -95,16 +58,22 @@ nav ul li a {
 </head>
 <body>
    <header>
-    <!-- <img src="" width="400px" height="400px" alt=""> -->
-    <img src="./images.png" width="400px" height="400px"  alt="Descripción de la imagen">
+    <!-- <img src="../imagenes/logos.jpeg" width="400px" height="400px" alt=""> -->
+    <img src="{{ url_for('static', filename='images/logos.jpeg') }}" alt="Imagen" width="150" height="80">
 
 
    </header>
-   <nav>
-    <ul>
-        <li>Home</li>
-        <li><a href="basedatos">Base Datos</a></li>
-    </ul>
+   <nav  class="bg-body-tertiary">
+  
+    <ul class="nav nav-pills justify-content-center mb-3 "  id="pills-tab" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link active" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link " href="basedatos">Base de Datos</a>
+        </li>
+       
+      </ul>
    </nav>
     <div class="container text-center">
         <h1>Cuadre de Bancos</h1>

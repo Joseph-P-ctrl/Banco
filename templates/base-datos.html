@@ -7,75 +7,92 @@
 </head>
 <body>
    <header>
-    <img src="" alt="Logo">
+    <img src="{{ url_for('static', filename='images/logos.jpeg') }}" alt="Imagen" width="150" height="80">
+
    </header>
-   <nav>
-    <ul>
-        <li>Home</li>
-        <li>Base Datos</li>
-    </ul>
-   </nav>
-    <div class="container text-center">
-        <h1>subir los archivos de la base de  datos</h1>
-        <span class="error">
-            {% if error_message %}
-            <p>Error: {{ error_message }}</p>
-        {% endif %}
-        </span>
-        
-        <form method="POST" action="/basedatos" enctype="multipart/form-data">
-            
-            
-            
+   <nav  class="bg-body-tertiary">
+  
+    <ul class="nav nav-pills justify-content-center mb-3 "  id="pills-tab" role="tablist">
+        <li class="nav-item">
+          <a class="nav-link " href="/">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="basedatos">Base de Datos</a>
+        </li>
        
-            <div class="row align-items-start">
-                <div class="col">
-                    <div >
-                        <div  class="box input-group mb-3">
-                        
-                            <input type="file" class="form-control" name="file" id="codigo" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                            <label class="input-group-text" for="pro">CODIGO RECAUDO:</label>
-                        </div>
-                    </div>
-                    
-                </div>
-                <div class="col">
-                    <div>
-                        <div  class="box input-group mb-3">
-                        
-                            <input type="file" class="form-control" name="file" id="prepago"  accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
-                            <label class="input-group-text" for="int">PREPAGOS:</label>
-                        </div>
-                    </div>
-                    
-                </div>
-                <div class="col">
-                    <div>
+      </ul>
+   </nav>
+    <div class="container container-maxwidth-sm mx-auto">
+        <div class="row">
 
-                        <div  class="box input-group mb-3">
-                            
-                            <input type="file" class="form-control" name="file" id="trabajores" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" >
-                            <label class="input-group-text" for="tra">TRABAJORES:</label>
-                        </div>
-                    </div>
-                </div>
-              </div>
+            <div class="col">
 
-              <div class="row">
-                <div class="col">
 
-                    <div class="d-grid gap-2 col-6 mx-auto">
-                        <input class="btn btn-primary" type="submit" value="Subir">
-                        
-                      </div>
-
-                  
-                </div>
+                <h1>subir los archivos de la base de  datos</h1>
+                <span class="error">
+                    {% if error_message %}
+                    <p>Error: {{ error_message }}</p>
+                {% endif %}
+                </span>
                 
-            </div>
-    </form>
-
+                <form method="POST" action="/basedatos" enctype="multipart/form-data">
+                    
+                    
+                    
+               
+                    <div class="row align-items-start">
+                        <div class="col">
+                            <div >
+                                <div  class="box input-group mb-3">
+                                
+                                    <input type="file" class="form-control" name="file" id="codigo" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                                    <label class="input-group-text" for="pro">CODIGO RECAUDO:</label>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="col">
+                            <div>
+                                <div  class="box input-group mb-3">
+                                
+                                    <input type="file" class="form-control" name="file" id="prepago"  accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                                    <label class="input-group-text" for="int">PREPAGOS:</label>
+                                </div>
+                            </div>
+                            
+                        </div>
+                        <div class="col">
+                            <div>
         
+                                <div  class="box input-group mb-3">
+                                    
+                                    <input type="file" class="form-control" name="file" id="trabajores" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" >
+                                    <label class="input-group-text" for="tra">TRABAJORES:</label>
+                                </div>
+                            </div>
+                        </div>
+                      </div>
+        
+                      <div class="row">
+                        <div class="col">
+        
+                            <div class="d-grid gap-2 col-6 mx-auto">
+                                <input class="btn btn-primary" type="submit" value="Subir">
+                                
+                              </div>
+        
+                          
+                        </div>
+                        
+                    </div>
+            </form>
+        
+                
+
+            </div>
+
+        </div>
+
       </div>
 
       
