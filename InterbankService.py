@@ -38,7 +38,8 @@ class InterbankService:
             
             for index, row in interbancarias.iterrows():
                 num_operacion = str(row["N° Operación"])
-                reg = self.movimientos.loc[(self.movimientos["Monto"].apply(lambda x: round(x, 2))==round(row["Monto abonado"],2)) & (self.movimientos["Operación - Número"].astype(str).str[-8:]==num_operacion[-8:])].copy()
+                reg = self.movimientos.loc[(self.movimientos["Monto"].apply(lambda x: round(x, 2))==round(row["Monto abonado"],2)) & (self.movimientos["Operación - Número"].astype(str).str[-4:]==num_operacion[-4:])].copy()
+                
                 if len(reg)>1:
                     self.error.message = "Mas de una coincidencia"
                     self.error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "operacion":num_operacion})
@@ -51,5 +52,7 @@ class InterbankService:
 
         except Exception as ex:
             self.error.message =str(ex)
+ 
+
 
 

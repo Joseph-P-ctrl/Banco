@@ -4,6 +4,9 @@ from InterbankService import InterbankService
 from ProviderService import ProviderService
 from TransferService import TransferService
 
+from BaseDatosService import BaseDatosService
+
+
 from io import BytesIO
 from flask_session import Session
 from flask_caching import Cache
@@ -11,6 +14,7 @@ from openpyxl import load_workbook
 
 
 import pandas as pd
+import os
 import openpyxl
 from openpyxl import Workbook
 
@@ -76,6 +80,23 @@ def home():
 
     else:
         return render_template('home.html')
+@app.route('/basedatos', methods=['POST','GET'])
+# def basedatos():
+#     return render_template('./base-datos.html')
+def basedatos():
+    if request.method == 'POST':
+        files = request.files.getlist('file')
+        try:
+            base_datos_service = BaseDatosService()  # Crear una instancia de la clase
+            base_datos_service.GuardarAchivos(files)  # Llamar al método utilizando la instancia
+            return ('BIEN')
+                
+        except Exception as e:
+            error_message = str(e)
+            return render_template('base-datos.html', error_message= error_message)
+
+    else:
+        return render_template('base-datos.html')
 
 
 @app.route('/upload', methods=['POST','GET'])
