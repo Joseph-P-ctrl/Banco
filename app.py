@@ -130,12 +130,10 @@ def upload():
         worksheet.column_dimensions["K"].width = 40  # Ajusta el ancho de la columna A
         worksheet.column_dimensions["L"].width = 40  # Ajusta el ancho de la columna A
 
-       
-        workbook.save(excel_file)
+        ruta_archivo = 'resultados.xlsx'
+        workbook.save(ruta_archivo)
 
-        excel_file.seek(0)
-        # Send the file-like object as a response with appropriate headers
-        return send_file(excel_file, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', as_attachment=True, download_name="movimientos.xlsx")
+        return send_file(ruta_archivo, as_attachment=True, download_name="movimientos.xlsx")
     else:
         data = cache.get('resumen')  # Access the query parameter
         return render_template("response.html", data= data)
