@@ -30,15 +30,15 @@ class AsientoService:
                 return
             
             if "Fecha" not in self.resultadosMovimiento.columns:
-                self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, mmmmmmmmmmmm cabeceras innecesarias"
+                self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas"
                 return
            
             if (len(self.asientos.columns)<21):
-                self.error.message = "Archivo asiento: Columnas no encontradas, elimine  "
+                self.error.message = "Archivo asiento: Columnas no encontradas, elimine  cabeceras innecesarias "
                 return
             
             if "Documento compras" not in self.asientos.columns:
-                self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, eliminepppppppp cabeceras innecesarias"
+                self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, elimine cabeceras innecesarias"
                 return
             df1m = self.resultadosMovimiento[["Monto","Saldo" ,"Sucursal - agencia" ,"Operación - Número" ,"Operación - Hora" ,"Usuario" ,"UTC" ,"Referencia2" ,"Referencia" ,"Procendecias"]].copy()
             df1a = self.asientos[["Documento compras","Icono part.abiertas/comp." ,"Acreedor" ,"Cuenta" ,"Fecha de documento" ,"Fe.contabilización" ,"Nº documento" ,"Clase de documento" ,"Referencia" ,"Doc.compensación" ,"Texto" ,"Moneda del documento" ,"Importe en moneda local" ,"División" ,"Ejercicio / mes" ,"Nombre del usuario" ,"Clave contabiliz." ,"Asignación" ,"Indicador Debe/Haber" ,"Importe en ML2" ,"Centro de coste"]].copy()
