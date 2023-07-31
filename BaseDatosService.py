@@ -8,12 +8,8 @@ from flask_caching import Cache
 class MyCustomException(Exception):
         pass
 
-        
-
 class BaseDatosService:
      
-
-
     def GuardarAchivos(self, files):
         try:
             for file in files:
