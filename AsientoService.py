@@ -12,8 +12,6 @@ class Error:
         self.items = []
     def addItem(self, item):
         self.items.append(item)    
-        
-
 class AsientoService:
      
     def __init__(self):
@@ -28,44 +26,30 @@ class AsientoService:
             if (len(self.resultadosMovimiento.columns)<10):
                 self.error.message = "Archivo moviento: Columnas no encontradas, elimine cabeceras innecesarias provecios "
                 return
-            
             if "Fecha" not in self.resultadosMovimiento.columns:
                 self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, mmmmmmmmmmmm cabeceras innecesarias"
                 return
-           
             if (len(self.asientos.columns)<21):
                 self.error.message = "Archivo asiento: Columnas no encontradas, elimine  "
                 return
-            
             if "Documento compras" not in self.asientos.columns:
                 self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, eliminepppppppp cabeceras innecesarias"
                 return
             df1m = self.resultadosMovimiento[["Monto","Saldo" ,"Sucursal - agencia" ,"Operación - Número" ,"Operación - Hora" ,"Usuario" ,"UTC" ,"Referencia2" ,"Referencia" ,"Procendecias"]].copy()
-            df1a = self.asientos[["Documento compras","Icono part.abiertas/comp." ,"Acreedor" ,"Cuenta" ,"Fecha de documento" ,"Fe.contabilización" ,"Nº documento" ,"Clase de documento" ,"Referencia" ,"Doc.compensación" ,"Texto" ,"Moneda del documento" ,"Importe en moneda local" ,"División" ,"Ejercicio / mes" ,"Nombre del usuario" ,"Clave contabiliz." ,"Asignación" ,"Indicador Debe/Haber" ,"Importe en ML2" ,"Centro de coste"]].copy()
-          
-            
-            df1aa = pd.DataFrame(df1a, columns=['Asignación'])
-            df1aa_filtrado = df1aa.dropna()
-            asignaciones= df1aa_filtrado['Asignación'].astype(int).astype(str).str.zfill(7).str[-6:]
-            movimientos_op= df1m['Operación - Número'].str[-6:]
-          
-            df1a = df1a.dropna(subset=['Nº documento'])
-            documentos = df1a['Nº documento'].astype(str)
+            df_asientos = self.asientos[["Documento compras","Icono part.abiertas/comp." ,"Acreedor" ,"Cuenta" ,"Fecha de documento" ,"Fe.contabilización" ,"Nº documento" ,"Clase de documento" ,"Referencia" ,"Doc.compensación" ,"Texto" ,"Moneda del documento" ,"Importe en moneda local" ,"División" ,"Ejercicio / mes" ,"Nombre del usuario" ,"Clave contabiliz." ,"Asignación" ,"Indicador Debe/Haber" ,"Importe en ML2" ,"Centro de coste"]].copy()
+            df_asientos_filtrado = df_asientos.dropna(subset=["Asignación"])
 
-            numeros_con_7 = documentos[documentos.str.startswith('7')]
-          
-                                
-            for valo1 in movimientos_op:
-                if valo1 in asignaciones.values:
-                    indice = asignaciones[asignaciones == valo1].index[0]
-                    
-                    num = round(float(numeros_con_7.loc[indice]))
-                    num_str = str(num)
-                
-                    self.resultadosMovimiento.at[indice, "Asientos"] = num_str
+            df_asientos_filtrado_7 = df_asientos_filtrado[df_asientos_filtrado['Nº documento'].astype(str).str.startswith('7')]
+            df_asientos_filtrado_7['Asignacion_new'] = df_asientos_filtrado_7['Asignación'].astype(int).astype(str).str.zfill(7).str[-6:]
+            df1m['Operacion_new'] = df1m['Operación - Número'].astype(str).str[-6:]
 
+            for index, row in df1m.iterrows():
+                reg = df_asientos_filtrado_7.loc[df_asientos_filtrado_7['Asignacion_new'] == row["Operacion_new"]]
+                if len(reg) == 1:
+                    print('los reg', reg['Nº documento'].iloc[0])
+                    self.resultadosMovimiento.loc[index, "Asientos"] = reg['Nº documento'].iloc[0]
 
-
+               
         except Exception as ex:
             self.error.message = str(ex)
             

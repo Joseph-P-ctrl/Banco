@@ -25,10 +25,6 @@ class TransferService:
 
     def process_transfers(self, transferFile):
         transferencias = pd.read_excel(transferFile, header=2)
-        # self.transferencias= pd.read_excel(transferencias, header=2 )
-
-
-        
         if len(transferencias.columns) < 10:
             self.error.message = "Archivo Transferencias: Columnas no ubicadas, elimine cabeceras innecesarias"
             return
@@ -42,9 +38,6 @@ class TransferService:
 
         
         for index, row in transferencias.iterrows():
-            #buscar en movimientos
-            #print("Monto abonado...", row["Monto abonado"])
-            #print("Fecha...", row["Fecha de abono"])
             fecha = datetime.strptime(row["Fecha de abono"], "%d/%m/%Y").date()
             reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha)]
             
@@ -52,10 +45,7 @@ class TransferService:
                 self.error.message= "Mas de una coincidencia"
                 self.error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "fecha":row["Fecha de abono"]})   
             elif(len(reg)==1):
-                #print("reg",row["Ordenante"])
                 self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha), "Referencia"] = row["Ordenante"]
-                #reg["Referencia"] = row["Ordenante"]
-                #self.movimientos = self.movimientos.update(reg)
             else:
                  self.error.message = "Registros no ubicados"
                  self.error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "fecha":row["Fecha de abono"]})   
