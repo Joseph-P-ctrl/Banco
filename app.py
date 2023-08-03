@@ -110,8 +110,12 @@ def asiento():
                         else:
                             raise Exception("Archivo no ubicado: "+nombre)    
                 movimientosAsientos=asientoService.conciliar(movimientosfile, asientosfile)
-                print(movimientosAsientos)
-                cache.set('movimientosAsientos', asientoService.resultadosMovimiento, timeout=600)
+                #solo si hay asientos se completa en el cache
+                if asientoService.resultadosMovimiento is not None:
+                    cache.set('movimientosAsientos', asientoService.resultadosMovimiento, timeout=600)
+                else: 
+                    #si hubiera error se pinta la misma pagina y no se redirecciona
+                    return render_template('asiento.html', error_message= 'No se encontro ningun asiento en el proceso')       
                 return redirect(url_for('respuestaasiento'))
             except Exception as e:
                 error_message = str(e)
@@ -128,14 +132,10 @@ def upload():
     if request.method == 'POST':
         movimientos = cache.get("movimientos")
         movimientos["Fecha"] = pd.to_datetime(movimientos["Fecha"], format="%d/%m/%Y").dt.strftime("%d/%m/%Y")
-        
-                
         excel_file = BytesIO()
         movimientos.to_excel(excel_file, index=False)
-
         workbook = openpyxl.load_workbook(excel_file)
         worksheet = workbook.active 
-
         worksheet.column_dimensions["A"].width = 20  
         worksheet.column_dimensions["C"].width = 30  
         worksheet.column_dimensions["K"].width = 40  
@@ -182,7 +182,7 @@ def respuestaasiento():
 
 
 if __name__ == '__main__':
-   app.run(host='0.0.0.0')
-#    app.run(debug=True)
+   #app.run(host='0.0.0.0')
+   app.run(debug=True)
 
     
