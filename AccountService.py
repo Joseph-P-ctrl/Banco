@@ -22,8 +22,8 @@ class AccountService:
     def __init__(self):
         self.error = Error()
      
-    def process_movements(self, movimientos):
-        self.movimientos= pd.read_excel(movimientos,  header=4)
+    def __process_movements_df(self, df_movimientos):
+        self.movimientos= df_movimientos
         if (len(self.movimientos.columns)<11):
             self.error.message = "Archivo movimientos: Columnas no encontradas, elimine cabeceras innecesarias de movimientos"
             return
@@ -71,7 +71,9 @@ class AccountService:
                     trabajores = "TRABAJADOR"
                     self.movimientos.at[index, "Procendecias"] = trabajores
    
-
+    def process_movements(self, movimientos):
+        df_movimientos= pd.read_excel(movimientos,  header=4)
+        self.__process_movements_df(df_movimientos)
    
 
 
