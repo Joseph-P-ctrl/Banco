@@ -21,7 +21,7 @@ class InterbankService:
 
     def setMovimientos(self,movimientos):
         self.movimientos = movimientos
-    def process_interbanks_df(self, df_interbancarias):
+    def __process_interbanks_df(self, df_interbancarias):
         try:
             if (len(df_interbancarias.columns)<7):
                 self.error.message = "Archivo Interbanks: Columnas no encontradas, elimine cabeceras innecesarias"
@@ -53,7 +53,7 @@ class InterbankService:
     def process_interbanks( self,interbankFile):
         try:
             interbancarias = pd.read_excel(interbankFile, header=2)
-            self.process_interbanks_df(interbancarias)
+            self.__process_interbanks_df(interbancarias)
         except Exception as ex:
             self.error.message =str(ex)
  

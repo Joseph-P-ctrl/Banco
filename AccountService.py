@@ -24,7 +24,14 @@ class AccountService:
      
     def process_movements(self, movimientos):
         self.movimientos= pd.read_excel(movimientos,  header=4)
+        if (len(self.movimientos.columns)<11):
+            self.error.message = "Archivo movimientos: Columnas no encontradas, elimine cabeceras innecesarias de movimientos"
+            return
+        if "Fecha" not in self.movimientos.columns:
+            self.error.message = "Columnas no encontradas, elimine cabeceras innecesarias"
+            return
         movimientos_efectivo = self.movimientos.loc[self.movimientos["Descripción operación"].str.contains('EFECTIVO', na=False)]
+ 
         for index, row in movimientos_efectivo.iterrows():
             cod_recaudo = re.findall(r'\d+', row["Descripción operación"])
             recaudos = "BD/CODIGO RECAUDO.xls"
@@ -63,13 +70,7 @@ class AccountService:
                     self.movimientos.at[index, "Referencia"] = descripcion
                     trabajores = "TRABAJADOR"
                     self.movimientos.at[index, "Procendecias"] = trabajores
-        if (len(self.movimientos.columns)<11):
-            self.error.message = "Archivo movimientos: Columnas no encontradas, elimine cabeceras innecesarias de movimientos"
-            return
-        if "Fecha" not in self.movimientos.columns:
-            self.error.message = "Columnas no encontradas, elimine cabeceras innecesarias"
-            return
- 
+   
 
    
 

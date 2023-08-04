@@ -23,8 +23,7 @@ class TransferService:
         self.movimientos = movimientos
         
 
-    def process_transfers(self, transferFile):
-        transferencias = pd.read_excel(transferFile, header=2)
+    def __process_transfers_df(self, transferencias):
         if len(transferencias.columns) < 10:
             self.error.message = "Archivo Transferencias: Columnas no ubicadas, elimine cabeceras innecesarias"
             return
@@ -37,12 +36,10 @@ class TransferService:
         transferencias["Monto abonado"] = pd.to_numeric(transferencias["Monto abonado"],errors='coerce')
         transferencias = transferencias.loc[transferencias["Monto abonado - Moneda"]=="S/ "].copy()
         self.movimientos["Fecha"] = pd.to_datetime(self.movimientos["Fecha"], dayfirst=True)
-        # self.movimientos["Fecha"] = pd.to_datetime(self.movimientos["Fecha"], dayfirst=True, errors='coerce')
+        
 
         for index, row in transferencias.iterrows():
             fecha = row["Fecha de abono"]
-            # fecha = datetime.strptime(row["Fecha de abono"], "%d/%m/%Y").date()
-            # fecha = index[1]
             reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha)]
             
             print('los resultadops',reg)
@@ -54,4 +51,7 @@ class TransferService:
             else:
                  self.error.message = "Registros no ubicados"
                  self.error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "fecha":row["Fecha de abono"]})   
-        
+    
+    def process_transfers(self, transferFile):
+        transferencias = pd.read_excel(transferFile, header=2)
+        self.__process_transfers_df(transferencias)
