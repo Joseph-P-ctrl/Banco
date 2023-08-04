@@ -19,10 +19,11 @@ class AsientoService:
 
     def conciliar( self, movimientosfile, asientosfile):
         try:
+            print('inicio asiento service')
             self.resultadosMovimiento = pd.read_excel(movimientosfile,   header=0 )
-            
+            print('resultado mov')
             self.asientos = pd.read_excel(asientosfile,   header=0 )
-        
+            print('asientos')        
             if (len(self.resultadosMovimiento.columns)<10):
                 self.error.message = "Archivo moviento: Columnas no encontradas, elimine cabeceras innecesarias provecios "
                 return
@@ -40,6 +41,7 @@ class AsientoService:
             df_asientos_filtrado = df_asientos.dropna(subset=["Asignación"])
 
             df_asientos_filtrado_7 = df_asientos_filtrado[df_asientos_filtrado['Nº documento'].astype(str).str.startswith('7')]
+            print('df_asientos_filtrado_7', df_asientos_filtrado_7)
             df_asientos_filtrado_7['Asignacion_new'] = df_asientos_filtrado_7['Asignación'].astype(int).astype(str).str.zfill(7).str[-6:]
             df1m['Operacion_new'] = df1m['Operación - Número'].astype(str).str[-6:]
 
@@ -52,5 +54,6 @@ class AsientoService:
                
         except Exception as ex:
             self.error.message = str(ex)
+            raise ex
             
     
