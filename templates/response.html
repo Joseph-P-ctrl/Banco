@@ -65,7 +65,7 @@
         <h1>Resumen Transfers</h1>
         <label for="tranfers"></label>
         {% if data.transfers.message  %}
-        <span>Error {{data.transfers.message}}</span>
+        <span class="error">Error {{data.transfers.message}}</span>
         
         <table>
             <thead>
@@ -104,7 +104,7 @@
     <h1>Resumen Providers</h1>
     <label for="providers"></label>
     {% if data.providers.message  %}
-    <span>Error: {{data.providers.message}}</span>
+    <span class="error">Error: {{data.providers.message}}</span>
     <table>
         <thead>
             <tr>
@@ -141,7 +141,7 @@
     <h1>Resumen Interbancarios</h1>
     <label for="interbanks"></label>
     {% if data.interbanks.message  %}
-    <span>Error {{data.interbanks.message}}</span>
+    <span class="error">Error {{data.interbanks.message}}</span>
     
     <table>
         <thead>
