@@ -111,8 +111,8 @@ def asiento():
                             raise Exception("Archivo no ubicado: "+nombre)    
                 movimientosAsientos=asientoService.conciliar(movimientosfile, asientosfile)
                 #solo si hay asientos se completa en el cache
-                if asientoService.resultadosMovimiento is not None:
-                    cache.set('movimientosAsientos', asientoService.resultadosMovimiento, timeout=600)
+                if asientoService.df_movimientos is not None:
+                    cache.set('movimientosAsientos', asientoService.df_movimientos, timeout=600)
                 else: 
                     #si hubiera error se pinta la misma pagina y no se redirecciona
                     return render_template('asiento.html', error_message= 'No se encontro ningun asiento en el proceso')       

@@ -21,22 +21,19 @@ class ProviderService:
     def setMovimientos(self,movimientos):
         self.movimientos = movimientos
 
-    def process_providers( self,providersFile):
+    def process_providers_df( self,df_proveedores):
         try:
-            proveedores = pd.read_excel(providersFile,   header=2 )
-            if (len(proveedores.columns)<13):
+            if (len(df_proveedores.columns)<13):
                 self.error.message = "Archivo Providers: Columnas no encontradas, elimine cabeceras innecesarias provecios "
                 return
-            if "Ordenante - Nombre o Razón Social" not in proveedores.columns:
+            if "Ordenante - Nombre o Razón Social" not in df_proveedores.columns:
                 self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, eliminepppppppp cabeceras innecesarias"
                 return
-            proveedores["Monto abonado"] = proveedores["Monto abonado"].astype(str).str.replace(",", "")
-
-            proveedores["Monto abonado"] = pd.to_numeric(proveedores["Monto abonado"],errors='coerce')
-
-            proveedores["Ordenante - Nombre o Razón Social"]=proveedores["Ordenante - Nombre o Razón Social"].str.strip()
-            new_proveedores = proveedores[["Monto abonado", "Ordenante - Nombre o Razón Social","Fecha de pago"]].copy()
-            proveedores["Fecha de pago"] = pd.to_datetime(proveedores["Fecha de pago"], dayfirst=True)
+            df_proveedores["Monto abonado"] = df_proveedores["Monto abonado"].astype(str).str.replace(",", "")
+            df_proveedores["Monto abonado"] = pd.to_numeric(df_proveedores["Monto abonado"],errors='coerce')
+            df_proveedores["Ordenante - Nombre o Razón Social"]=df_proveedores["Ordenante - Nombre o Razón Social"].str.strip()
+            new_proveedores = df_proveedores[["Monto abonado", "Ordenante - Nombre o Razón Social","Fecha de pago"]].copy()
+            df_proveedores["Fecha de pago"] = pd.to_datetime(df_proveedores["Fecha de pago"], dayfirst=True)
 
             group_proveedores = new_proveedores.groupby(["Ordenante - Nombre o Razón Social","Fecha de pago"]).sum().round(2)
             print('los grupos de proveedores',group_proveedores)
@@ -58,6 +55,14 @@ class ProviderService:
                 else:
                     self.error.message = "Registros no ubicados"
                     self.error.addItem({"ordenante": index[0], "monto": monto_abonado, "fecha":fecha})   
+            
+        except Exception as ex:
+            self.error.message = str(ex)
+            
+    def process_providers( self,providersFile):
+        try:
+            df_proveedores = pd.read_excel(providersFile,   header=2 )
+            self.process_providers_df(df_proveedores)
             
         except Exception as ex:
             self.error.message = str(ex)

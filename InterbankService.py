@@ -21,22 +21,20 @@ class InterbankService:
 
     def setMovimientos(self,movimientos):
         self.movimientos = movimientos
-
-    def process_interbanks( self,interbankFile):
+    def process_interbanks_df(self, df_interbancarias):
         try:
-            interbancarias = pd.read_excel(interbankFile, header=2)
-            if (len(interbancarias.columns)<7):
+            if (len(df_interbancarias.columns)<7):
                 self.error.message = "Archivo Interbanks: Columnas no encontradas, elimine cabeceras innecesarias"
                 return
             
-            if "Tipo de Operación" not in interbancarias.columns:
+            if "Tipo de Operación" not in df_interbancarias.columns:
                 self.error.message = "Archivo Interbanks: Columnas no encontradas, elimine cabeceras innecesarias"
                 return
-            interbancarias["Monto abonado"] = interbancarias["Monto abonado"].astype(str).str.replace(",", "")
-            interbancarias["Monto abonado"] = pd.to_numeric(interbancarias["Monto abonado"],errors='coerce')
-            interbancarias = interbancarias.loc[interbancarias["Monto abonado - Moneda"]=="S/ "].copy()
+            df_interbancarias["Monto abonado"] = df_interbancarias["Monto abonado"].astype(str).str.replace(",", "")
+            df_interbancarias["Monto abonado"] = pd.to_numeric(df_interbancarias["Monto abonado"],errors='coerce')
+            df_interbancarias = df_interbancarias.loc[df_interbancarias["Monto abonado - Moneda"]=="S/ "].copy()
             
-            for index, row in interbancarias.iterrows():
+            for index, row in df_interbancarias.iterrows():
                 num_operacion = str(row["N° Operación"])
                 reg = self.movimientos.loc[(self.movimientos["Monto"].apply(lambda x: round(x, 2))==round(row["Monto abonado"],2)) &
                                            (self.movimientos["Operación - Número"].astype(str).str[-4:]==num_operacion[-4:])].copy()
@@ -48,8 +46,14 @@ class InterbankService:
                         self.movimientos.loc[(self.movimientos["Monto"].apply(lambda x: round(x, 2))==round(row["Monto abonado"],2)) &
                                              (self.movimientos["Operación - Número"].astype(str).str[-4:]==num_operacion[-4:]), "Referencia"] = row["Ordenante"]
                 else:
-                    self.error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "operacion":num_operacion})         
+                    self.error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "operacion":num_operacion})          
+        except Exception as ex:
+            self.error.message =str(ex)
 
+    def process_interbanks( self,interbankFile):
+        try:
+            interbancarias = pd.read_excel(interbankFile, header=2)
+            self.process_interbanks_df(interbancarias)
         except Exception as ex:
             self.error.message =str(ex)
  
