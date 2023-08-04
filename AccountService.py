@@ -48,20 +48,20 @@ class AccountService:
                     indice = np.where(col_codigos_recaudo == cod_recaudo_entero[0])[0][0]
                     descripcion = col_descripcion_recaudo[indice]
                     self.movimientos.at[index, "Referencia"] = descripcion
-                    recaudos = "Recaudos"
+                    recaudos = "COD.RECAUDO"
                     self.movimientos.at[index, "Procendecias"] = recaudos
                     print('df_recaudos')
                 if cod_recaudo_entero[0] in col_codigos_prepagos.values:
                     indice = np.where(col_codigos_prepagos == cod_recaudo_entero[0])[0][0]
                     descripcion = col_descripcion_prepagos[indice]
                     self.movimientos.at[index, "Referencia"] = descripcion
-                    prepagos = "Prepagos"
+                    prepagos = "PREPAGO"
                     self.movimientos.at[index, "Procendecias"] = prepagos                
                 if cod_recaudo_entero[0] in col_codigos_trabajores.values:
                     indice = np.where(col_codigos_trabajores == cod_recaudo_entero[0])[0][0]
                     descripcion = col_descripcion_trabajores[indice]
                     self.movimientos.at[index, "Referencia"] = descripcion
-                    trabajores = "Trabajadores"
+                    trabajores = "TRABAJADOR"
                     self.movimientos.at[index, "Procendecias"] = trabajores
         if (len(self.movimientos.columns)<11):
             self.error.message = "Archivo movimientos: Columnas no encontradas, elimine cabeceras innecesarias de movimientos"

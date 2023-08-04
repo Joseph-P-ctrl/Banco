@@ -33,14 +33,19 @@ class TransferService:
             self.error.message = "Archivo Transferencias: Columnas no encontradas, elimine cabeceras innecesarias"
             return
         transferencias["Monto abonado"] = transferencias["Monto abonado"].astype(str).str.replace(",", "")
+        transferencias["Fecha de abono"] =  pd.to_datetime(transferencias["Fecha de abono"], dayfirst=True, errors='coerce')
         transferencias["Monto abonado"] = pd.to_numeric(transferencias["Monto abonado"],errors='coerce')
         transferencias = transferencias.loc[transferencias["Monto abonado - Moneda"]=="S/ "].copy()
+        self.movimientos["Fecha"] = pd.to_datetime(self.movimientos["Fecha"], dayfirst=True)
+        # self.movimientos["Fecha"] = pd.to_datetime(self.movimientos["Fecha"], dayfirst=True, errors='coerce')
 
-        
         for index, row in transferencias.iterrows():
-            fecha = datetime.strptime(row["Fecha de abono"], "%d/%m/%Y").date()
+            fecha = row["Fecha de abono"]
+            # fecha = datetime.strptime(row["Fecha de abono"], "%d/%m/%Y").date()
+            # fecha = index[1]
             reg = self.movimientos.loc[(self.movimientos["Monto"]==row["Monto abonado"]) & (self.movimientos["Fecha"]==fecha)]
             
+            print('los resultadops',reg)
             if len(reg)>1:
                 self.error.message= "Mas de una coincidencia"
                 self.error.addItem({"ordenante": row["Ordenante"], "monto": row["Monto abonado"], "fecha":row["Fecha de abono"]})   
