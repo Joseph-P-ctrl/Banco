@@ -21,7 +21,7 @@ class ProviderService:
     def setMovimientos(self,movimientos):
         self.movimientos = movimientos
 
-    def __process_providers_df( self,df_proveedores):
+    def _process_providers_df( self,df_proveedores):
         try:
             if (len(df_proveedores.columns)<13):
                 self.error.message = "Archivo Providers: Columnas no encontradas, elimine cabeceras innecesarias provecios "
@@ -62,7 +62,7 @@ class ProviderService:
     def process_providers( self,providersFile):
         try:
             df_proveedores = pd.read_excel(providersFile,   header=2 )
-            self.__process_providers_df(df_proveedores)
+            self._process_providers_df(df_proveedores)
             
         except Exception as ex:
             self.error.message = str(ex)

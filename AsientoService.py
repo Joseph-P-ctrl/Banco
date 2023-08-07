@@ -17,7 +17,7 @@ class AsientoService:
     def __init__(self):
         self.error= Error()
         
-    def __conciliar_df( self, df_movimientos, df_asientos):
+    def _conciliar_df( self, df_movimientos, df_asientos):
         self.df_movimientos = df_movimientos
         self.df_asientos = df_asientos
         try:
@@ -58,7 +58,7 @@ class AsientoService:
         try:
             df_movimientos = pd.read_excel(movimientosfile,   header=0 )
             df_asientos = pd.read_excel(asientosfile,   header=0 )
-            self.__conciliar_df(df_movimientos, df_asientos)
+            self._conciliar_df(df_movimientos, df_asientos)
 
                
         except Exception as ex:

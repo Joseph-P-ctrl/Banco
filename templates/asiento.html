@@ -7,7 +7,35 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <title>Asientos</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/spin.js/2.3.2/spin.min.js"></script>
+   
+    <style>
+        .loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            width: 50px;
+            height: 50px;
+        }
+    </style>
+   <script>
 
+
+
+    window.addEventListener("load", function () {
+        document.querySelector("form").addEventListener("submit", function () {
+            var target = document.getElementById("loader");
+            var spinner = new Spinner().spin(target);
+            document.getElementById("submitBtn").setAttribute("disabled", "true");
+            target.style.display = "inline-block";
+
+        });
+      
+    });
+
+</script>
 </head>
 
 <body>
@@ -63,7 +91,7 @@
                                     <input type="file" class="form-control" name="file" id="mov"
                                         accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                                         required>
-                                    <label class="input-group-text" for="mov">Movimientos</label>
+                                    <label class="input-group-text" for="mov">Movimientosñ</label>
                                 </div>
                             </div>
 
@@ -89,8 +117,8 @@
                         <div class="col">
 
                             <div class="d-grid gap-2 col-6 mx-auto">
-                                <input class="btn btn-primary" id="submitBtn" type="submit" value="Subir">
-                                <!-- <button class="btn btn-primary" id="submitBtn" onclick="validateFiles()">Subir</button> -->
+                                <input id="submitBtn" class="btn btn-primary" type="submit" value="Subir">
+                        
 
                             </div>
 
@@ -103,8 +131,9 @@
 
 
             </div>
-
+            
         </div>
+        <div id="loader" class="loader"></div>
 
     </div>
 

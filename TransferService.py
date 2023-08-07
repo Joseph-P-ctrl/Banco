@@ -23,7 +23,7 @@ class TransferService:
         self.movimientos = movimientos
         
 
-    def __process_transfers_df(self, transferencias):
+    def _process_transfers_df(self, transferencias):
         if len(transferencias.columns) < 10:
             self.error.message = "Archivo Transferencias: Columnas no ubicadas, elimine cabeceras innecesarias"
             return
@@ -54,4 +54,4 @@ class TransferService:
     
     def process_transfers(self, transferFile):
         transferencias = pd.read_excel(transferFile, header=2)
-        self.__process_transfers_df(transferencias)
+        self._process_transfers_df(transferencias)
