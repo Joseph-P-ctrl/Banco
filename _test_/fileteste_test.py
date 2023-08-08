@@ -52,7 +52,11 @@ class TestReadExcel(unittest.TestCase):
         accountService = AccountService()   
         accountService._process_movements_df(movimientos)
         proveedoresService.setMovimientos(accountService.movimientos)  
-        proveedoresService._process_providers_df(proveedores_teste)  
+        proveedoresService._process_providers_df(proveedores_teste) 
+        
+          # Realiza las aserciones correspondientes para verificar los resultados
+        self.assertEqual( proveedoresService.movimientos["Referencia"][0],"KALLPA GENERACION SA")  # Aserciones de prueba según lo que esperas
+ 
     
     def test_tgransfee(self):
         
@@ -90,6 +94,7 @@ class TestReadExcel(unittest.TestCase):
         inteService.setMovimientos(accountService.movimientos)  
             
         inteService._process_transfers_df(traferencias)  
+        self.assertEqual( inteService.movimientos["Referencia"][0],"CONSORCIO ELECTRICO DE VILLACURI S.A.C.")
     
     
     def test_asiento(self):
@@ -140,6 +145,8 @@ class TestReadExcel(unittest.TestCase):
         export_teste = pd.DataFrame(export_teste)
         asientoService = AsientoService()
         asientoService._conciliar_df(movimiento_teste, export_teste)
+        self.assertEqual(asientoService.df_movimientos["Asientos"][0],7000013520)
+    
 
 
 if __name__ == '__main__':
