@@ -45,8 +45,8 @@ class AsientoService:
             for index, row in df1m.iterrows():
                 reg = df_asientos_filtrado_7.loc[df_asientos_filtrado_7['Asignacion_new'] == row["Operacion_new"]]
                 if len(reg) == 1:
-                    print('los reg', reg['Nº documento'].iloc[0])
                     self.df_movimientos.loc[index, "Asientos"] = reg['Nº documento'].iloc[0]
+                    print('los reg', reg['Nº documento'].iloc[0])
 
                
         except Exception as ex:

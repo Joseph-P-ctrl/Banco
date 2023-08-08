@@ -40,10 +40,8 @@ class ProviderService:
             self.movimientos["Fecha"] = pd.to_datetime(self.movimientos["Fecha"], dayfirst=True)
             
             for index, row in group_proveedores.iterrows():
-                #fecha = datetime.strptime(index[1], "%d/%m/%Y").date()
                 fecha = index[1]
                 monto_abonado = float(row["Monto abonado"])
-                # self.movimientos["Monto"] = pd.to_numeric(self.movimientos["Monto"], errors='coerce')
                 
                 reg = self.movimientos.loc[(self.movimientos["Monto"]==monto_abonado) & (self.movimientos["Fecha"]==fecha)]
                
@@ -52,9 +50,11 @@ class ProviderService:
                     self.error.addItem({"ordenante": index[0], "monto": monto_abonado, "fecha":fecha})
                 elif(len(reg)==1):
                     self.movimientos.loc[(self.movimientos["Monto"]==monto_abonado) & (self.movimientos["Fecha"]==fecha), "Referencia"] = index[0]
+                    print("las posiciones ", index[0])
                 else:
                     self.error.message = "Registros no ubicados"
-                    self.error.addItem({"ordenante": index[0], "monto": monto_abonado, "fecha":fecha})   
+                    self.error.addItem({"ordenante": index[0], "monto": monto_abonado, "fecha":fecha})
+                    print("ordenante",index[0], "monto", monto_abonado, "fecha",fecha)   
             
         except Exception as ex:
             self.error.message = str(ex)
