@@ -57,6 +57,7 @@
 </script>
 </head>
 <body>
+    <div class="d-flex flex-column min-vh-100">
    <header>
     <!-- <img src="../imagenes/logos.jpeg" width="400px" height="400px" alt=""> -->
     <img src="{{ url_for('static', filename='images/logos.jpeg') }}" alt="Imagen" width="150" height="80">
@@ -78,7 +79,7 @@
        
       </ul>
    </nav>
-    <div class="container text-center">
+    <div class="flex-grow-1  container text-center">
         <h1>Cuadre de Bancos</h1>
         <span class="error">
             {% if error_message %}
@@ -158,6 +159,10 @@
       <div id="loader" class="loader"></div>
       
 
+<footer>
+    <div class="text-end">v 0.3.8</div>
     
+</footer>
+</div>
 </body>
 </html>
