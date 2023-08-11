@@ -57,8 +57,70 @@ class TestReadExcel(unittest.TestCase):
           # Realiza las aserciones correspondientes para verificar los resultados
         self.assertEqual( proveedoresService.movimientos["Referencia"][0],"KALLPA GENERACION SA")  # Aserciones de prueba según lo que esperas
  
-    
-    def test_tgransfee(self):
+    def test_proveedores_06(self):
+        proveedores = {
+            "Ordenante - Nombre o Razón Social": ["CELEPSA RENOVABLES SRL"],
+            "Ordenante - RUC/DNI": ["RUC"],
+            "Ordenante - Número": ["20422764136"],
+            "Documento - Tipo": ["Factura del proveedor"],
+            "Nº de documento": ["000000000014007"],
+            "Fecha de pago": ["01/08/2023"],
+            "Cuenta, crédito o tarjeta de crédito de destino - T": ["C"],
+            "Cuenta, crédito o tarjeta de crédito de destino - M": ["S/"],
+            "Cuenta, crédito o tarjeta de crédito de destino - Número": ["305-0037523-0-27"],
+            "Monto abonado - Moneda": ["S/"],
+            "Monto abonado": [0.06],
+            "Estado": ["Procesada"],
+            "Observación": ["Ninguna"]
+        }
+
+        movimientoProveedores = {
+            "Fecha": ["01/08/2023"],
+            "Fecha valuta": [""],  # This field appears to be empty in the given data
+            "Descripción operación": ["0000014007 CELEPSA REN"],
+            "Monto": [0.06],
+            "Saldo": ["11,834,790.39"],  # You might want to represent this as a float or integer based on use-case
+            "Sucursal - agencia": ["111-008"],
+            "Operación - Número": ["01248993"],
+            "Operación - Hora": ["16:55:55"],
+            "Usuario": ["TNP100"],
+            "UTC": ["2401"],
+            "Referencia2": ["Pago Fact.14007"]
+        }
+        proveedores_teste = pd.DataFrame(proveedores)    
+        movimientos =  pd.DataFrame(movimientoProveedores)
+        proveedoresService = ProviderService()
+        accountService = AccountService()   
+        accountService._process_movements_df(movimientos)
+        proveedoresService.setMovimientos(accountService.movimientos)  
+        proveedoresService._process_providers_df(proveedores_teste) 
+        
+          # Realiza las aserciones correspondientes para verificar los resultados
+        self.assertEqual( proveedoresService.movimientos["Referencia"][0],"CELEPSA RENOVABLES SRL")  # Aserciones de prueba según lo que esperas
+ 
+    def test_recaudos_EFECTIVO(self):
+        
+        movimientoProveedores = {
+            "Fecha": ["09/08/2023"],
+            "Fecha valuta": [""],  # This field appears to be empty in the given data
+            "Descripción operación": ["EFECTIVO00000027149820"],
+            "Monto": [2832.16],
+            "Saldo": ["2,597,597.93"],  # You might want to represent this as a float or integer based on use-case
+            "Sucursal - agencia": ["111-008"],
+            "Operación - Número": ["01248993"],
+            "Operación - Hora": ["16:55:55"],
+            "Usuario": ["TNP100"],
+            "UTC": ["2401"],
+            "Referencia2": ["Pago Fact.14007"]
+        }
+        movimientos = pd.DataFrame(movimientoProveedores)
+        accountService = AccountService()   
+        accountService._process_movements_df(movimientos)
+        self.assertEqual( accountService.movimientos["Procendecias"][0],"COD.RECAUDO")  # Aserciones de prueba según lo que esperas
+        
+        # Realiza las aserciones correspondientes para verificar los resultados
+ 
+    def test_transferencias_consorcio_electrico_villacuri(self):
         
         traferedatos =   {
             "Ordenante": ["CONSORCIO ELECTRICO DE VILLACURI S.A.C."],

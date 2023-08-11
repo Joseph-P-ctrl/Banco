@@ -24,19 +24,17 @@ class ProviderService:
     def _process_providers_df( self,df_proveedores):
         try:
             if (len(df_proveedores.columns)<13):
-                self.error.message = "Archivo Providers: Columnas no encontradas, elimine cabeceras innecesarias provecios "
-                return
+                raise MyCustomException("Archivo Providers: Columnas no encontradas, elimine cabeceras innecesarias provecios ")
             if "Ordenante - Nombre o Razón Social" not in df_proveedores.columns:
-                self.error.message = "Archivo Estado de Cuenta: Columnas no encontradas, eliminepppppppp cabeceras innecesarias"
-                return
+                raise MyCustomException("Archivo Estado de Cuenta: Columnas no encontradas, elimine cabeceras innecesarias")
+
             df_proveedores["Monto abonado"] = df_proveedores["Monto abonado"].astype(str).str.replace(",", "")
             df_proveedores["Monto abonado"] = pd.to_numeric(df_proveedores["Monto abonado"],errors='coerce')
             df_proveedores["Ordenante - Nombre o Razón Social"]=df_proveedores["Ordenante - Nombre o Razón Social"].str.strip()
-            new_proveedores = df_proveedores[["Monto abonado", "Ordenante - Nombre o Razón Social","Fecha de pago"]].copy()
             df_proveedores["Fecha de pago"] = pd.to_datetime(df_proveedores["Fecha de pago"], dayfirst=True)
+            new_proveedores = df_proveedores[["Monto abonado", "Ordenante - Nombre o Razón Social","Fecha de pago"]].copy()
 
             group_proveedores = new_proveedores.groupby(["Ordenante - Nombre o Razón Social","Fecha de pago"]).sum().round(2)
-            print('los grupos de proveedores',group_proveedores)
             self.movimientos["Fecha"] = pd.to_datetime(self.movimientos["Fecha"], dayfirst=True)
             
             for index, row in group_proveedores.iterrows():

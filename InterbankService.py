@@ -24,12 +24,12 @@ class InterbankService:
     def __process_interbanks_df(self, df_interbancarias):
         try:
             if (len(df_interbancarias.columns)<7):
-                self.error.message = "Archivo Interbanks: Columnas no encontradas, elimine cabeceras innecesarias"
-                return
+                raise MyCustomException("Archivo Interbanks: Columnas no encontradas, elimine cabeceras innecesarias")
+                
             
             if "Tipo de Operación" not in df_interbancarias.columns:
-                self.error.message = "Archivo Interbanks: Columnas no encontradas, elimine cabeceras innecesarias"
-                return
+                raise MyCustomException("Archivo Interbanks: Columnas no encontradas, elimine cabeceras innecesarias")
+            
             df_interbancarias["Monto abonado"] = df_interbancarias["Monto abonado"].astype(str).str.replace(",", "")
             df_interbancarias["Monto abonado"] = pd.to_numeric(df_interbancarias["Monto abonado"],errors='coerce')
             df_interbancarias = df_interbancarias.loc[df_interbancarias["Monto abonado - Moneda"]=="S/ "].copy()
