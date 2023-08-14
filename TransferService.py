@@ -36,7 +36,8 @@ class TransferService:
         transferencias["Monto abonado"] = pd.to_numeric(transferencias["Monto abonado"],errors='coerce')
         transferencias = transferencias.loc[transferencias["Monto abonado - Moneda"]=="S/"].copy()
         self.movimientos["Fecha"] = pd.to_datetime(self.movimientos["Fecha"], dayfirst=True)
-        
+        self.movimientos["Monto"] =  self.movimientos["Monto"].astype(str).str.replace(",", "")
+        self.movimientos["Monto"] =  pd.to_numeric(self.movimientos["Monto"],errors='coerce')
 
         for index, row in transferencias.iterrows():
             fecha = row["Fecha de abono"]
