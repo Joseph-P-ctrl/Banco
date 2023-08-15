@@ -63,7 +63,7 @@ class AccountService:
                     self.movimientos.at[index, "Referencia"] = descripcion
                     recaudos = "COD.RECAUDO"
                     self.movimientos.at[index, "Procendecias"] = recaudos
-                    print('df_recaudos')
+                    
                 if cod_recaudo_entero[0] in col_codigos_prepagos.values:
                     indice = np.where(col_codigos_prepagos == cod_recaudo_entero[0])[0][0]
                     descripcion = col_descripcion_prepagos[indice]

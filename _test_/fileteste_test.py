@@ -207,7 +207,7 @@ class TestReadExcel(unittest.TestCase):
     "Cuenta - T": ["C"],
     "Cuenta - M": ["S/"],
     "Cuenta - Número": ["305-0037523-0-27"],
-    "Monto de operación - Moneda": ["S/"],
+    "Monto de operación - Moneda": ["S/ "],
     "Monto de operación": ["2,390.37"],
     "T/C": ["0.00"],
     "Monto abonado - Moneda": ["S/"],
