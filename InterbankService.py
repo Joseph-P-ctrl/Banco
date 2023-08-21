@@ -33,7 +33,7 @@ class InterbankService:
             df_interbancarias["Monto abonado"] = df_interbancarias["Monto abonado"].astype(str).str.replace(",", "")
             df_interbancarias["Monto abonado"] = pd.to_numeric(df_interbancarias["Monto abonado"],errors='coerce')
             df_interbancarias = df_interbancarias.loc[df_interbancarias["Monto abonado - Moneda"]=="S/ "].copy()
-            
+            print(df_interbancarias.dtypes)
             for index, row in df_interbancarias.iterrows():
                 num_operacion = str(row["N° Operación"])
                 reg = self.movimientos.loc[(self.movimientos["Monto"].apply(lambda x: round(x, 2))==round(row["Monto abonado"],2)) &

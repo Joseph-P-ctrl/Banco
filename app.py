@@ -56,6 +56,7 @@ def home():
                         else:
                             raise Exception("Archivo no ubicado: "+nombre)    
                 cache.set('movimientos', accountService.movimientos, timeout=600)
+                cache.set('recaudos', accountService.recaudos, timeout=600)
                 resumen = {"movements": accountService.error, "providers": providerService.error, "transfers": transferService.error, "interbanks": interbankService.error}
                 cache.set('resumen', resumen)
                 return redirect(url_for('upload'))
@@ -152,8 +153,26 @@ def upload():
         return render_template("response.html", data= data)
     
     
-    
-    
+@app.route('/download_recaudos', methods=['POST'])
+def download_recaudos():
+        recaudos = cache.get("recaudos")
+        #movimientos["Fecha"] = pd.to_datetime(movimientos["Fecha"], format="%d/%m/%Y").dt.strftime("%d/%m/%Y")
+        excel_file = BytesIO()
+        recaudos.to_excel(excel_file, index=False)
+        workbook = openpyxl.load_workbook(excel_file)
+        worksheet = workbook.active 
+        worksheet.column_dimensions["A"].width = 15  
+        worksheet.column_dimensions["B"].width = 50  
+        worksheet.column_dimensions["C"].width = 25  
+        worksheet.column_dimensions["D"].width = 10  
+        worksheet.column_dimensions["E"].width = 15 
+        worksheet.column_dimensions["F"].width = 10 
+
+        ruta_archivo = 'files/recaudos.xlsx'
+        workbook.save(ruta_archivo)
+
+        return send_file(ruta_archivo, as_attachment=True, download_name="recaudos.xlsx")
+        
 @app.route('/respuestaasiento', methods=['POST','GET'])
 def respuestaasiento():
     
@@ -183,7 +202,7 @@ def respuestaasiento():
 
 
 if __name__ == '__main__':
-   #app.run(host='0.0.0.0')
-   app.run(debug=True)
+   app.run(host='0.0.0.0')
+   #app.run(debug=True)
 
     

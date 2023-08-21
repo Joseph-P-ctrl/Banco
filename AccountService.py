@@ -22,6 +22,19 @@ class AccountService:
     def __init__(self):
         self.error = Error()
      
+    def read_recaudos(self,config):
+        recaudos = "BD/CODIGO RECAUDO.xlsx"
+        recaudos = os.path.join('BD', config["RECAUDOS"])
+        return pd.read_excel(recaudos)
+    def read_prepagos(self,config):
+        prepagos = "BD/PREPAGOS.xlsx"
+        prepagos = os.path.join('BD', config["PREPAGOS"])
+        return pd.read_excel(prepagos, header=None)
+    def read_trabajadores(self,config):
+        trabajadores = "BD/TRABAJORES.xlsx"
+        trabajadores = os.path.join('BD', config["TRABAJADORES"])
+        return pd.read_excel(trabajadores, header=None)
+    
     def _process_movements_df(self, df_movimientos):
         self.movimientos= df_movimientos
         if (len(self.movimientos.columns)<11):
@@ -29,53 +42,87 @@ class AccountService:
         if "Fecha" not in self.movimientos.columns:
             raise MyCustomException("Columnas no encontradas, elimine cabeceras innecesarias")
         movimientos_efectivo = self.movimientos.loc[self.movimientos["Descripción operación"].str.contains('EFECTIVO', na=False)]
- 
+
+        
+        
+        
+
+        with open('BD/config.json', 'r') as file:
+            config = json.load(file)
+            
+            # Leer el archivo Excel
+            df_recaudos = self.read_recaudos(config)
+            if (len(df_recaudos.columns)>6):
+                raise MyCustomException('BD Recaudos debe tener 6 columnas, revisar')
+            cols_recaudos = ['codigo', 'nombre', 'informacion','fecha_gen','area','fecha_dep']
+            df_recaudos.columns = cols_recaudos
+            self.recaudos = df_recaudos
+            df_prepagos = self.read_prepagos(config)
+            cols_prepagos = ['codigo','nombre']
+            df_prepagos.columns = cols_prepagos
+            df_trabajores = self.read_trabajadores(config)
+            cols_trabajadores = ['codigo','nombre']
+            df_trabajores.columns = cols_trabajadores
         for index, row in movimientos_efectivo.iterrows():
             cod_recaudo = re.findall(r'\d+', row["Descripción operación"])
             cod_recaudo = [num.lstrip('0') for num in cod_recaudo if num.lstrip('0')]
-            recaudos = "BD/CODIGO RECAUDO.xlsx"
-            prepagos = "BD/PREPAGOS.xlsx"
-            trabajadores = "BD/TRABAJORES.xlsx"
+            
+            #search in recaudos
+            reg = df_recaudos.loc[df_recaudos['codigo'].astype(str) == cod_recaudo[0]]
 
-            with open('BD/config.json', 'r') as file:
-                config = json.load(file)
-                recaudos = os.path.join('BD', config["RECAUDOS"])
-                prepagos = os.path.join('BD', config["PREPAGOS"])
-                trabajadores = os.path.join('BD', config["TRABAJADORES"])
                 
-            # Leer el archivo Excel
-            df_recaudos = pd.read_excel(recaudos, header=None)
-            df_prepagos = pd.read_excel(prepagos, header=None)
-            df_trabajores = pd.read_excel(trabajadores, header=None)
+            if len(reg)>0:
+                self.movimientos.at[index, "Referencia"] = reg['nombre'].iloc[0] #lee la segunda columan el primer registro
+                recaudos = "COD.RECAUDO-" + str(reg['area'].iloc[0])
+                self.movimientos.at[index, "Procedencia"] = recaudos
+                self.recaudos.loc[self.recaudos['codigo'].astype(str)==cod_recaudo[0],"fecha_dep"]=row["Fecha"]      
+                continue
+             #search in prepagos
+            reg = df_prepagos.loc[df_prepagos['codigo'].astype(str)==cod_recaudo[0]]   
+            if len(reg)>0:
+                self.movimientos.at[index, "Referencia"] = reg['nombre'].iloc[0] #lee la segunda columan el primer registro
+                recaudos = "PREPAGO" #+ str(reg['codigo'].iloc[0])
+                self.movimientos.at[index, "Procedencia"] = recaudos
+                
+                continue
+            #search in trabajadores
+            reg = df_trabajores.loc[df_trabajores['codigo'].astype(str)==cod_recaudo[0]]   
+            if len(reg)>0:
+                self.movimientos.at[index, "Referencia"] = reg['nombre'].iloc[0] #lee la segunda columan el primer registro
+                recaudos = "TRABAJADOR" #+ str(reg['codigo'].iloc[0])
+                self.movimientos.at[index, "Procedencia"] = recaudos
+                continue
+            
+            
+            # col_codigos_recaudo     = df_recaudos[0]
+            # col_codigos_prepagos    = df_prepagos[0]
+            # col_codigos_trabajores  =  df_trabajores[0]
+            # col_descripcion_recaudo     = df_recaudos[1]
+            # col_descripcion_prepagos    = df_prepagos[1]
+            # col_descripcion_trabajores  =  df_trabajores[1]
 
-            col_codigos_recaudo     = df_recaudos[0]
-            col_codigos_prepagos    = df_prepagos[0]
-            col_codigos_trabajores  =  df_trabajores[0]
-            col_descripcion_recaudo     = df_recaudos[1]
-            col_descripcion_prepagos    = df_prepagos[1]
-            col_descripcion_trabajores  =  df_trabajores[1]
-            if cod_recaudo:
-                cod_recaudo_entero = [int(digito) for digito in cod_recaudo]
+            # if cod_recaudo:
+            #     cod_recaudo_entero = [int(digito) for digito in cod_recaudo]
                 
-                if cod_recaudo_entero[0] in col_codigos_recaudo.values:
-                    indice = np.where(col_codigos_recaudo == cod_recaudo_entero[0])[0][0]
-                    descripcion = col_descripcion_recaudo[indice]
-                    self.movimientos.at[index, "Referencia"] = descripcion
-                    recaudos = "COD.RECAUDO"
-                    self.movimientos.at[index, "Procendecias"] = recaudos
+            #     if cod_recaudo_entero[0] in col_codigos_recaudo.values:
+            #         indice = np.where(col_codigos_recaudo == cod_recaudo_entero[0])[0][0]
+            #         descripcion = col_descripcion_recaudo[indice]
+            #         self.movimientos.at[index, "Referencia"] = descripcion
+            #         recaudos = "COD.RECAUDO"
+            #         self.movimientos.at[index, "Procedencia"] = recaudos
                     
-                if cod_recaudo_entero[0] in col_codigos_prepagos.values:
-                    indice = np.where(col_codigos_prepagos == cod_recaudo_entero[0])[0][0]
-                    descripcion = col_descripcion_prepagos[indice]
-                    self.movimientos.at[index, "Referencia"] = descripcion
-                    prepagos = "PREPAGO"
-                    self.movimientos.at[index, "Procendecias"] = prepagos                
-                if cod_recaudo_entero[0] in col_codigos_trabajores.values:
-                    indice = np.where(col_codigos_trabajores == cod_recaudo_entero[0])[0][0]
-                    descripcion = col_descripcion_trabajores[indice]
-                    self.movimientos.at[index, "Referencia"] = descripcion
-                    trabajadores = "TRABAJADOR"
-                    self.movimientos.at[index, "Procendecias"] = trabajadores
+            #     if cod_recaudo_entero[0] in col_codigos_prepagos.values:
+            #         indice = np.where(col_codigos_prepagos == cod_recaudo_entero[0])[0][0]
+            #         descripcion = col_descripcion_prepagos[indice]
+            #         self.movimientos.at[index, "Referencia"] = descripcion
+            #         prepagos = "PREPAGO"
+            #         self.movimientos.at[index, "Procedencia"] = prepagos                
+            #     if cod_recaudo_entero[0] in col_codigos_trabajores.values:
+            #         indice = np.where(col_codigos_trabajores == cod_recaudo_entero[0])[0][0]
+            #         descripcion = col_descripcion_trabajores[indice]
+            #         self.movimientos.at[index, "Referencia"] = descripcion
+            #         trabajadores = "TRABAJADOR"
+            #         self.movimientos.at[index, "Procedencia"] = trabajadores
    
     def process_movements(self, movimientos):
         df_movimientos= pd.read_excel(movimientos,  header=4)
