@@ -96,7 +96,7 @@ def asiento():
           files = request.files.getlist('file')
           filtered_files = [x for x in files if x.filename!=""]
           if len(filtered_files) <= 1:
-            return render_template('asiento.html', error_message= 'Debe subir por lo menos un archivo.')
+            return render_template('asiento.html', error_message= 'Debe subir ambos archivo.')
           else:
             try:
                 asientoService = AsientoService()    

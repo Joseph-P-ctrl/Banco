@@ -34,17 +34,17 @@ class AsientoService:
                 raise MyCustomException("Archivo Asientos: Columna Nro Documento no encontrada")
             
             df1m = self.df_movimientos[["Monto","Saldo" ,"Sucursal - agencia" ,"Operación - Número" ,"Operación - Hora" ,"Usuario" ,"UTC"  ,"Referencia" ,"Procedencia"]].copy()
+            
             df_asientos_filtrado = df_asientos.dropna(subset=["Asignación"])
-
+        
             #df_asientos_filtrado_7 = df_asientos_filtrado[df_asientos_filtrado['Nº documento'].astype(str).str.startswith('7')]
-            df_asientos_filtrado['Asignacion_new'] = df_asientos_filtrado['Asignación'].astype(str).str.zfill(7).str[-6:].astype(float)
+            #df_asientos_filtrado['Asignacion_new'] = df_asientos_filtrado['Asignación'].astype(str).str.zfill(7).str[-6:].astype(float)
             df1m['Operacion_new'] = df1m['Operación - Número'].astype(str).str[-6:].astype(float)
-            print(df1m.dtypes)
             for index, row in df1m.iterrows():
-                reg = df_asientos_filtrado.loc[df_asientos_filtrado['Asignacion_new'] == row["Operacion_new"]]
+                reg = df_asientos_filtrado.loc[df_asientos_filtrado['Asignación'] == row["Operacion_new"]]
                 if len(reg) == 1:
                     self.df_movimientos.loc[index, "Asientos"] = reg['Nº documento'].iloc[0]
-                    print('encontro')
+                    #print('encontro')
 
                
         except Exception as ex:
