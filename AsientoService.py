@@ -38,13 +38,15 @@ class AsientoService:
             df_asientos_filtrado = df_asientos.dropna(subset=["Asignación"])
         
             #df_asientos_filtrado_7 = df_asientos_filtrado[df_asientos_filtrado['Nº documento'].astype(str).str.startswith('7')]
-            #df_asientos_filtrado['Asignacion_new'] = df_asientos_filtrado['Asignación'].astype(str).str.zfill(7).str[-6:].astype(float)
-            df1m['Operacion_new'] = df1m['Operación - Número'].astype(str).str[-6:].astype(float)
+            df_asientos_filtrado['Asignacion_new'] = df_asientos_filtrado['Asignación'].astype(str).str.zfill(7).str[-6:]
+            df1m['Operacion_new'] = df1m['Operación - Número'].astype(str).str[-6:]
             for index, row in df1m.iterrows():
-                reg = df_asientos_filtrado.loc[df_asientos_filtrado['Asignación'] == row["Operacion_new"]]
+                print('dentro de for')
+                reg = df_asientos_filtrado.loc[df_asientos_filtrado['Asignacion_new'] == row["Operacion_new"]]
+                print(reg)
                 if len(reg) == 1:
                     self.df_movimientos.loc[index, "Asientos"] = reg['Nº documento'].iloc[0]
-                    #print('encontro')
+                    print('encontro')
 
                
         except Exception as ex:
