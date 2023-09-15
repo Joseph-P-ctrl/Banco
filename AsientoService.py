@@ -38,12 +38,31 @@ class AsientoService:
             df_asientos_filtrado = df_asientos.dropna(subset=["Asignación"])
         
             #df_asientos_filtrado_7 = df_asientos_filtrado[df_asientos_filtrado['Nº documento'].astype(str).str.startswith('7')]
-            df_asientos_filtrado['Asignacion_new'] = df_asientos_filtrado['Asignación'].astype(str).str.zfill(7).str[-6:]
+            df_asientos_filtrado['Asignacion_new'] = df_asientos_filtrado['Asignación'].astype(str)
+           
+            def extract_decimal_part(value):
+                decimal_position = value.find(".")
+                if decimal_position != -1:
+                    return value[decimal_position + 1:]
+                else:
+                    return ""
+            def extract_integer_part(value):
+                decimal_position = value.find(".")
+                if decimal_position != -1:
+                    return value[:decimal_position]
+                else:
+                    return value
+            df_asientos_filtrado['Asignacion_new']  = df_asientos_filtrado['Asignacion_new'].apply(extract_integer_part)
+            df_asientos_filtrado['Asignacion_new']= df_asientos_filtrado['Asignacion_new'].str.zfill(7).str[-6:]
+            print(df_asientos_filtrado["Asignacion_new"])
             df1m['Operacion_new'] = df1m['Operación - Número'].astype(str).str[-6:]
+            print(df1m["Operacion_new"])
+            
+
             for index, row in df1m.iterrows():
-                print('dentro de for')
+                #print('dentro de for')
                 reg = df_asientos_filtrado.loc[df_asientos_filtrado['Asignacion_new'] == row["Operacion_new"]]
-                print(reg)
+                #print(reg)
                 if len(reg) == 1:
                     self.df_movimientos.loc[index, "Asientos"] = reg['Nº documento'].iloc[0]
                     print('encontro')
