@@ -77,7 +77,7 @@ class AccountService:
                 self.movimientos.at[index, "Procedencia"] = recaudos
                 self.recaudos.loc[self.recaudos['codigo'].astype(str)==cod_recaudo[0],"fecha_dep"]=row["Fecha"]  
 
-                self.movimientos.at[index, "info retorno"] = row['informacion']
+                self.movimientos.at[index, "info retorno"] = reg['informacion'].iloc[0]
 
                 continue
              #search in prepagos
@@ -95,37 +95,7 @@ class AccountService:
                 recaudos = "TRABAJADOR" #+ str(reg['codigo'].iloc[0])
                 self.movimientos.at[index, "Procedencia"] = recaudos
                 continue
-            
-            
-            # col_codigos_recaudo     = df_recaudos[0]
-            # col_codigos_prepagos    = df_prepagos[0]
-            # col_codigos_trabajores  =  df_trabajores[0]
-            # col_descripcion_recaudo     = df_recaudos[1]
-            # col_descripcion_prepagos    = df_prepagos[1]
-            # col_descripcion_trabajores  =  df_trabajores[1]
-
-            # if cod_recaudo:
-            #     cod_recaudo_entero = [int(digito) for digito in cod_recaudo]
-                
-            #     if cod_recaudo_entero[0] in col_codigos_recaudo.values:
-            #         indice = np.where(col_codigos_recaudo == cod_recaudo_entero[0])[0][0]
-            #         descripcion = col_descripcion_recaudo[indice]
-            #         self.movimientos.at[index, "Referencia"] = descripcion
-            #         recaudos = "COD.RECAUDO"
-            #         self.movimientos.at[index, "Procedencia"] = recaudos
-                    
-            #     if cod_recaudo_entero[0] in col_codigos_prepagos.values:
-            #         indice = np.where(col_codigos_prepagos == cod_recaudo_entero[0])[0][0]
-            #         descripcion = col_descripcion_prepagos[indice]
-            #         self.movimientos.at[index, "Referencia"] = descripcion
-            #         prepagos = "PREPAGO"
-            #         self.movimientos.at[index, "Procedencia"] = prepagos                
-            #     if cod_recaudo_entero[0] in col_codigos_trabajores.values:
-            #         indice = np.where(col_codigos_trabajores == cod_recaudo_entero[0])[0][0]
-            #         descripcion = col_descripcion_trabajores[indice]
-            #         self.movimientos.at[index, "Referencia"] = descripcion
-            #         trabajadores = "TRABAJADOR"
-            #         self.movimientos.at[index, "Procedencia"] = trabajadores
+           
    
     def process_movements(self, movimientos):
         df_movimientos= pd.read_excel(movimientos,  header=4)
