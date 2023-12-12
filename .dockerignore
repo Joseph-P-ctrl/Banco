@@ -18,4 +18,4 @@ config.ini
 
 # Ignore any sensitive or secret files
 secrets/
-flask_session/
+**/flask_session/
