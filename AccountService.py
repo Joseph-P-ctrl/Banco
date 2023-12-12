@@ -75,7 +75,10 @@ class AccountService:
                 self.movimientos.at[index, "Referencia"] = reg['nombre'].iloc[0] #lee la segunda columan el primer registro
                 recaudos = "COD.RECAUDO-" + str(reg['area'].iloc[0])
                 self.movimientos.at[index, "Procedencia"] = recaudos
-                self.recaudos.loc[self.recaudos['codigo'].astype(str)==cod_recaudo[0],"fecha_dep"]=row["Fecha"]      
+                self.recaudos.loc[self.recaudos['codigo'].astype(str)==cod_recaudo[0],"fecha_dep"]=row["Fecha"]  
+
+                self.movimientos.at[index, "info retorno"] = row['informacion']
+
                 continue
              #search in prepagos
             reg = df_prepagos.loc[df_prepagos['codigo'].astype(str)==cod_recaudo[0]]   
