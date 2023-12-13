@@ -55,16 +55,48 @@ def home():
                             providerService.process_providers(file)    
                         else:
                             raise Exception("Archivo no ubicado: "+nombre)    
-                cache.set('movimientos', accountService.movimientos, timeout=600)
-                cache.set('recaudos', accountService.recaudos, timeout=600)
+                guardaMovimientos(accountService.movimientos)
+                guardaRecaudos(accountService.recaudos)
                 resumen = {"movements": accountService.error, "providers": providerService.error, "transfers": transferService.error, "interbanks": interbankService.error}
-                cache.set('resumen', resumen)
-                return redirect(url_for('upload'))
+               
+                return render_template("response.html", data= resumen) 
+    
+                #return redirect(url_for('upload'))
             except Exception as e:
                 error_message = str(e)
                 return render_template('home.html', error_message= error_message)
     else:
         return render_template('home.html')
+
+def guardaMovimientos(movimientos):
+        movimientos["Fecha"] = pd.to_datetime(movimientos["Fecha"], format="%d/%m/%Y").dt.strftime("%d/%m/%Y")
+        excel_file = BytesIO()
+        movimientos.to_excel(excel_file, index=False)
+        workbook = openpyxl.load_workbook(excel_file)
+        worksheet = workbook.active 
+        worksheet.column_dimensions["A"].width = 20  
+        worksheet.column_dimensions["C"].width = 30  
+        worksheet.column_dimensions["K"].width = 40  
+        worksheet.column_dimensions["L"].width = 40  
+        worksheet.column_dimensions["M"].width = 35 
+        worksheet.column_dimensions["N"].width = 40
+        ruta_archivo = 'files/movimientos.xlsx'
+        workbook.save(ruta_archivo)
+
+def guardaRecaudos(recaudos):
+    excel_file = BytesIO()
+    recaudos.to_excel(excel_file, index=False)
+    workbook = openpyxl.load_workbook(excel_file)
+    worksheet = workbook.active 
+    worksheet.column_dimensions["A"].width = 15  
+    worksheet.column_dimensions["B"].width = 50  
+    worksheet.column_dimensions["C"].width = 25  
+    worksheet.column_dimensions["D"].width = 10  
+    worksheet.column_dimensions["E"].width = 15 
+    worksheet.column_dimensions["F"].width = 10 
+
+    ruta_archivo = 'files/recaudos.xlsx'
+    workbook.save(ruta_archivo)
 
 @app.route('/basedatos', methods=['POST','GET'])
 def basedatos():
@@ -132,45 +164,14 @@ def asiento():
 def upload():
     
     if request.method == 'POST':
-        movimientos = cache.get("movimientos")
-        movimientos["Fecha"] = pd.to_datetime(movimientos["Fecha"], format="%d/%m/%Y").dt.strftime("%d/%m/%Y")
-        excel_file = BytesIO()
-        movimientos.to_excel(excel_file, index=False)
-        workbook = openpyxl.load_workbook(excel_file)
-        worksheet = workbook.active 
-        worksheet.column_dimensions["A"].width = 20  
-        worksheet.column_dimensions["C"].width = 30  
-        worksheet.column_dimensions["K"].width = 40  
-        worksheet.column_dimensions["L"].width = 40  
-        worksheet.column_dimensions["M"].width = 35 
-
         ruta_archivo = 'files/movimientos.xlsx'
-        workbook.save(ruta_archivo)
-
         return send_file(ruta_archivo, as_attachment=True, download_name="movimientos.xlsx")
-    else:
-        data = cache.get('resumen')  
-        return render_template("response.html", data= data)
+   
     
-    
+
 @app.route('/download_recaudos', methods=['POST'])
 def download_recaudos():
-        recaudos = cache.get("recaudos")
-        #movimientos["Fecha"] = pd.to_datetime(movimientos["Fecha"], format="%d/%m/%Y").dt.strftime("%d/%m/%Y")
-        excel_file = BytesIO()
-        recaudos.to_excel(excel_file, index=False)
-        workbook = openpyxl.load_workbook(excel_file)
-        worksheet = workbook.active 
-        worksheet.column_dimensions["A"].width = 15  
-        worksheet.column_dimensions["B"].width = 50  
-        worksheet.column_dimensions["C"].width = 25  
-        worksheet.column_dimensions["D"].width = 10  
-        worksheet.column_dimensions["E"].width = 15 
-        worksheet.column_dimensions["F"].width = 10 
-
         ruta_archivo = 'files/recaudos.xlsx'
-        workbook.save(ruta_archivo)
-
         return send_file(ruta_archivo, as_attachment=True, download_name="recaudos.xlsx")
         
 @app.route('/respuestaasiento', methods=['POST','GET'])
