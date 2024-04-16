@@ -33,12 +33,12 @@ class AsientoService:
             if "Nº documento" not in self.df_asientos.columns:
                 raise MyCustomException("Archivo Asientos: Columna Nro Documento no encontrada")
             
-            df1m = self.df_movimientos[["Monto","Saldo" ,"Sucursal - agencia" ,"Operación - Número" ,"Operación - Hora" ,"Usuario" ,"UTC"  ,"Referencia" ,"Procedencia"]].copy()
+            #df1m = self.df_movimientos[["Monto","Saldo" ,"Sucursal - agencia" ,"Operación - Número" ,"Operación - Hora" ,"Usuario" ,"UTC"  ,"Referencia" ,"Procedencia"]].copy()
             
-            df_asientos_filtrado = df_asientos.dropna(subset=["Asignación"])
+            self.df_asientos = df_asientos.dropna(subset=["Asignación"])
         
             #df_asientos_filtrado_7 = df_asientos_filtrado[df_asientos_filtrado['Nº documento'].astype(str).str.startswith('7')]
-            df_asientos_filtrado['Asignacion_new'] = df_asientos_filtrado['Asignación'].astype(str)
+            self.df_asientos['Asignacion_new'] = self.df_asientos['Asignación'].astype(str)
            
             def extract_decimal_part(value):
                 decimal_position = value.find(".")
@@ -52,20 +52,22 @@ class AsientoService:
                     return value[:decimal_position]
                 else:
                     return value
-            df_asientos_filtrado['Asignacion_new']  = df_asientos_filtrado['Asignacion_new'].apply(extract_integer_part)
-            df_asientos_filtrado['Asignacion_new']= df_asientos_filtrado['Asignacion_new'].str.zfill(7).str[-6:]
-            print(df_asientos_filtrado["Asignacion_new"])
-            df1m['Operacion_new'] = df1m['Operación - Número'].astype(str).str[-6:]
-            print(df1m["Operacion_new"])
-            
+            self.df_asientos['Asignacion_new']  = self.df_asientos['Asignacion_new'].apply(extract_integer_part)
+            self.df_asientos['Asignacion_new']= self.df_asientos['Asignacion_new'].str.zfill(7).str[-6:]
+            print('asientos', df_asientos)
+            #print(self.df_asientos["Asignacion_new"])
+            self.df_movimientos['Operacion_new'] = self.df_movimientos['Operación - Número'].astype(str).str[-6:]
+            #print(self.df_movimientos["Operacion_new"])
+            self.df_movimientos["Fecha"] = pd.to_datetime(self.df_movimientos["Fecha"], dayfirst=True)
 
-            for index, row in df1m.iterrows():
-                #print('dentro de for')
-                reg = df_asientos_filtrado.loc[df_asientos_filtrado['Asignacion_new'] == row["Operacion_new"]]
+            for index, row in self.df_movimientos.iterrows():
+                #print('dentro de for', row)
+
+                reg = self.df_asientos.loc[(self.df_asientos['Asignacion_new'] == row["Operacion_new"]) & (self.df_asientos["Fecha de documento"]==row["Fecha"])]
                 #print(reg)
                 if len(reg) == 1:
                     self.df_movimientos.loc[index, "Asientos"] = reg['Nº documento'].iloc[0]
-                    print('encontro')
+                    #print('encontro')
 
                
         except Exception as ex:

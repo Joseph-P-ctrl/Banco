@@ -18,4 +18,5 @@ EXPOSE 5000
 # ENV ENV_VAR_NAME value
 
 # Define the command to start the Flask application
-CMD ["python", "app.py", "--host=0.0.0.0"]
+#CMD ["python", "app.py", "--host=0.0.0.0"]
+CMD ["gunicorn"  , "--bind", "0.0.0.0:5000", "app:app"]
