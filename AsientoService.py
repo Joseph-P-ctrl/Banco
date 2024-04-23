@@ -20,9 +20,9 @@ class AsientoService:
     def _conciliar_df( self, df_movimientos, df_asientos):
         self.df_movimientos = df_movimientos
         self.df_asientos = df_asientos
-        print(df_movimientos.columns)
-        print('columnas',len(df_movimientos.columns))
-        print('asiento cols',len(df_asientos.columns))
+        #print(df_movimientos.columns)
+        #print('columnas',len(df_movimientos.columns))
+        #print('asiento cols',len(df_asientos.columns))
         try:
             if (len(self.df_movimientos.columns)<10):
                raise MyCustomException("Archivo movimientos: Columnas no encontradas, elimine cabeceras innecesarias provecios ")
@@ -35,10 +35,11 @@ class AsientoService:
             
             #df1m = self.df_movimientos[["Monto","Saldo" ,"Sucursal - agencia" ,"Operación - Número" ,"Operación - Hora" ,"Usuario" ,"UTC"  ,"Referencia" ,"Procedencia"]].copy()
             
-            self.df_asientos = df_asientos.dropna(subset=["Asignación"])
+            #self.df_asientos = df_asientos.dropna(subset=["Asignación"])
         
             #df_asientos_filtrado_7 = df_asientos_filtrado[df_asientos_filtrado['Nº documento'].astype(str).str.startswith('7')]
             self.df_asientos['Asignacion_new'] = self.df_asientos['Asignación'].astype(str)
+            print('df_asientos', self.df_asientos)
            
             def extract_decimal_part(value):
                 decimal_position = value.find(".")
@@ -54,15 +55,25 @@ class AsientoService:
                     return value
             self.df_asientos['Asignacion_new']  = self.df_asientos['Asignacion_new'].apply(extract_integer_part)
             self.df_asientos['Asignacion_new']= self.df_asientos['Asignacion_new'].str.zfill(7).str[-6:]
-            print('asientos', df_asientos)
+            #print('asientos', df_asientos)
             #print(self.df_asientos["Asignacion_new"])
             self.df_movimientos['Operacion_new'] = self.df_movimientos['Operación - Número'].astype(str).str[-6:]
             #print(self.df_movimientos["Operacion_new"])
             self.df_movimientos["Fecha"] = pd.to_datetime(self.df_movimientos["Fecha"], dayfirst=True)
-
+            #print('df_movimientos', self.df_movimientos["Fecha"])
+            #print('df_asientos', self.df_asientos["Fecha de documento"])
+            # try:
+            #     self.df_asientos.loc[:, "Fecha de documento"] = pd.to_datetime(self.df_asientos["Fecha de documento"],  format='%d/%m/%Y')
+            # except ValueError as e:
+            #     print("Error:", e)
+            print('tipos', self.df_asientos.dtypes)
+            
+            #self.df_asientos["Fecha de documento"] = pd.to_datetime(self.df_asientos["Fecha de documento"], format='%Y%m%d.0', errors='coerce')
+            #print('df_asientos', self.df_asientos["Fecha de documento"])
             for index, row in self.df_movimientos.iterrows():
                 #print('dentro de for', row)
-
+                #print("Fecha", row["Fecha"])
+                
                 reg = self.df_asientos.loc[(self.df_asientos['Asignacion_new'] == row["Operacion_new"]) & (self.df_asientos["Fecha de documento"]==row["Fecha"])]
                 #print(reg)
                 if len(reg) == 1:
@@ -76,7 +87,12 @@ class AsientoService:
             
     
     def conciliar( self, movimientosfile, asientosfile):
+        
         try:
+            # Definir una función para convertir el número de serie de fecha en formato legible
+            def excel_date_to_datetime(x):
+                return pd.to_datetime('1900-01-01') + pd.to_timedelta(x-1, 'D')
+            
             df_movimientos = pd.read_excel(movimientosfile,   header=0 )
             df_asientos = pd.read_excel(asientosfile,   header=0 )
             self._conciliar_df(df_movimientos, df_asientos)

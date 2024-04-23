@@ -122,43 +122,43 @@ def basedatos():
         nohay = 'Archivo subido correctamente.'
         return render_template('base-datos.html')
     
-@app.route('/asiento', methods=['POST','GET'])
-def asiento():
-    if request.method == 'POST':
-          files = request.files.getlist('file')
-          filtered_files = [x for x in files if x.filename!=""]
-          if len(filtered_files) <= 1:
-            return render_template('asiento.html', error_message= 'Debe subir ambos archivo.')
-          else:
-            try:
-                asientoService = AsientoService()    
-                for file in files:
-                    nombre =  file.filename.upper() 
-                 
-                    if (nombre != ""):
-                        if MOVIMIENTOS in nombre:
-                            movimientosfile= file
-                        elif   ASIENTO in nombre:
-                            asientosfile = file
-                        else:
-                            raise Exception("Archivo no ubicado: "+nombre)    
-                asientoService.conciliar(movimientosfile, asientosfile)
-                #solo si hay asientos se completa en el cache
-                if asientoService.df_movimientos is not None:
-                    cache.set('movimientosAsientos', asientoService.df_movimientos, timeout=600)
-                    return redirect(url_for('respuestaasiento'))
-                else: 
-                    #si hubiera error se pinta la misma pagina y no se redirecciona
-                    return render_template('asiento.html', error_message= 'No se encontro ningun asiento en el proceso')       
-                
-            except Exception as e:
-                error_message = str(e)
-                return render_template('asiento.html', error_message= error_message)
+@app.route('/asiento', methods=['POST'])
+def asiento_procesar():
+    files = request.files.getlist('file')
+    filtered_files = [x for x in files if x.filename!=""]
+    if len(filtered_files) <= 1:
+        return render_template('asiento.html', error_message= 'Debe subir ambos archivo.')
     else:
-        return render_template('asiento.html')
+        try:
+            asientoService = AsientoService()    
+            for file in files:
+                nombre =  file.filename.upper() 
+                
+                if (nombre != ""):
+                    if MOVIMIENTOS in nombre:
+                        movimientosfile= file
+                    elif   ASIENTO in nombre:
+                        asientosfile = file
+                    else:
+                        raise Exception("Archivo no ubicado: "+nombre)    
+            asientoService.conciliar(movimientosfile, asientosfile)
+            #solo si hay asientos se completa en el cache
+            if asientoService.df_movimientos is not None:
+                cache.set('movimientosAsientos', asientoService.df_movimientos, timeout=600)
+                return redirect(url_for('respuestaasiento'))
+            else: 
+                #si hubiera error se pinta la misma pagina y no se redirecciona
+                return render_template('asiento.html', error_message= 'No se encontro ningun asiento en el proceso')       
+            
+        except Exception as e:
+            error_message = str(e)
+            return render_template('asiento.html', error_message= error_message)
 
 
 
+@app.route('/asiento', methods=['GET'])
+def asiento_get():
+    return render_template('asiento.html')
 
 @app.route('/upload', methods=['POST','GET'])
 def upload():
@@ -203,7 +203,7 @@ def respuestaasiento():
 
 
 if __name__ == '__main__':
-   app.run(host='0.0.0.0')
-   #app.run(debug=True)
+   #app.run(host='0.0.0.0')
+   app.run(debug=True)
 
     
