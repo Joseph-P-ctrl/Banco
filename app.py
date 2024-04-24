@@ -144,8 +144,8 @@ def asiento_procesar():
             asientoService.conciliar(movimientosfile, asientosfile)
             #solo si hay asientos se completa en el cache
             if asientoService.df_movimientos is not None:
-                cache.set('movimientosAsientos', asientoService.df_movimientos, timeout=600)
-                return redirect(url_for('respuestaasiento'))
+                guardaAsientos(asientoService.df_movimientos)
+                return render_template('responseasiento.html', data= asientoService.df_movimientos)
             else: 
                 #si hubiera error se pinta la misma pagina y no se redirecciona
                 return render_template('asiento.html', error_message= 'No se encontro ningun asiento en el proceso')       
@@ -173,13 +173,8 @@ def upload():
 def download_recaudos():
         ruta_archivo = 'files/recaudos.xlsx'
         return send_file(ruta_archivo, as_attachment=True, download_name="recaudos.xlsx")
-        
-@app.route('/respuestaasiento', methods=['POST','GET'])
-def respuestaasiento():
-    
-    if request.method == 'POST':
-        movimientosAsientos = cache.get("movimientosAsientos")
-        
+
+def guardaAsientos(movimientosAsientos):
         movimientosAsientos["Fecha"] = pd.to_datetime(movimientosAsientos["Fecha"], format="%d/%m/%Y").dt.strftime("%d/%m/%Y")
         excel_file = BytesIO()
         movimientosAsientos.to_excel(excel_file, index=False)
@@ -192,13 +187,14 @@ def respuestaasiento():
         worksheet.column_dimensions["M"].width = 35 
         worksheet.column_dimensions["N"].width = 28 
 
-        ruta_archivo = 'files/movimientos.xlsx'
+        ruta_archivo = 'files/asientos.xlsx'
         workbook.save(ruta_archivo)
 
+
+@app.route('/download_asientos', methods=['POST'])
+def dowload_asientos():
+        ruta_archivo = 'files/asientos.xlsx'
         return send_file(ruta_archivo, as_attachment=True, download_name="Asiento.xlsx")
-    else:
-        data = cache.get('movimientosAsientos')
-        return render_template("responseasiento.html", data= data)
 
 
 

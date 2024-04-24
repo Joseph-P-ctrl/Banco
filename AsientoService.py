@@ -58,7 +58,7 @@ class AsientoService:
                 reg = self.df_asientos.loc[(self.df_asientos['Asignacion_new'] == row["Operacion_new"]) & (self.df_asientos["Fecha de documento"]==row["Fecha"])]
                 if len(reg) == 1:
                     self.df_movimientos.loc[index, "Asientos"] = reg['Nº documento'].iloc[0]
-            
+            self.df_movimientos = self.df_movimientos.drop('Operacion_new', axis=1)
                
         except Exception as ex:
             self.error.message = str(ex)
