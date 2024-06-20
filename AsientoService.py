@@ -49,7 +49,7 @@ class AsientoService:
                     return value
             self.df_asientos['Asignacion_new']  = self.df_asientos['Asignacion_new'].apply(extract_integer_part)
             self.df_asientos['Asignacion_new']= self.df_asientos['Asignacion_new'].str.zfill(7).str[-6:]
-            self.df_movimientos['Operacion_new'] = self.df_movimientos['Operación - Número'].astype(str).str[-6:]
+            self.df_movimientos['Operacion_new'] = self.df_movimientos['Operación - Número'].astype(str).str.zfill(7).str[-6:]
             self.df_movimientos["Fecha"] = pd.to_datetime(self.df_movimientos["Fecha"], dayfirst=True)
             print('tipos', self.df_asientos.dtypes)
             
