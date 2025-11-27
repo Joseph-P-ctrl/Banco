@@ -36,6 +36,12 @@ class TransferService:
         df_transferencias["Fecha de abono"] =  pd.to_datetime(df_transferencias["Fecha de abono"], dayfirst=True, errors='coerce')
         df_transferencias["Monto abonado"] = pd.to_numeric(df_transferencias["Monto abonado"],errors='coerce')
         print('transfer 1', df_transferencias)
+          # Limpia la columna: quita espacios internos y externos
+        df_transferencias["Monto abonado - Moneda"] = (
+                df_transferencias["Monto abonado - Moneda"]
+                .str.strip()           # elimina espacios al inicio y al final
+                .str.replace(" ", "")  # elimina espacios internos
+            )
         df_transferencias = df_transferencias.loc[df_transferencias["Monto abonado - Moneda"]=="S/"].copy()
         print('transfer 2', df_transferencias)
         self.movimientos["Fecha"] = pd.to_datetime(self.movimientos["Fecha"], dayfirst=True)
