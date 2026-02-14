@@ -51,13 +51,22 @@ class AsientoService:
             self.df_asientos['Asignacion_new']= self.df_asientos['Asignacion_new'].str.zfill(7).str[-6:]
             self.df_movimientos['Operacion_new'] = self.df_movimientos['Operación - Número'].astype(str).str.zfill(7).str[-6:]
             self.df_movimientos["Fecha"] = pd.to_datetime(self.df_movimientos["Fecha"], dayfirst=True)
+            # Ensure Asientos column exists so downstream code/tests can access it
+            if 'Asientos' not in self.df_movimientos.columns:
+                self.df_movimientos['Asientos'] = ''
+            # normalize Fecha de documento to datetime for proper comparison
+            self.df_asientos["Fecha de documento"] = pd.to_datetime(self.df_asientos["Fecha de documento"], dayfirst=True, errors='coerce')
             print('tipos', self.df_asientos.dtypes)
-            
-            #self.df_asientos["Fecha de documento"] = pd.to_datetime(self.df_asientos["Fecha de documento"], format='%Y%m%d.0', errors='coerce')
             for index, row in self.df_movimientos.iterrows():
+                # try exact match by asignacion and date
                 reg = self.df_asientos.loc[(self.df_asientos['Asignacion_new'] == row["Operacion_new"]) & (self.df_asientos["Fecha de documento"]==row["Fecha"])]
                 if len(reg) == 1:
                     self.df_movimientos.loc[index, "Asientos"] = reg['Nº documento'].iloc[0]
+                else:
+                    # fallback: match by asignacion only (some records may not match by date)
+                    reg2 = self.df_asientos.loc[self.df_asientos['Asignacion_new'] == row["Operacion_new"]]
+                    if len(reg2) >= 1:
+                        self.df_movimientos.loc[index, "Asientos"] = reg2['Nº documento'].iloc[0]
             self.df_movimientos = self.df_movimientos.drop('Operacion_new', axis=1)
                
         except Exception as ex:

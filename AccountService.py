@@ -87,7 +87,7 @@ class AccountService:
             reg = df_prepagos.loc[df_prepagos['codigo'].astype(str)==cod_recaudo[0]]   
             if len(reg)>0:
                 self.movimientos.at[index, "Referencia"] = reg['nombre'].iloc[0] #lee la segunda columan el primer registro
-                recaudos = "PREPAGO" #+ str(reg['codigo'].iloc[0])
+                recaudos = "PREPAGO-" + str(reg['codigo'].iloc[0])
                 self.movimientos.at[index, "Procedencia"] = recaudos
                 
                 continue
@@ -95,7 +95,7 @@ class AccountService:
             reg = df_trabajores.loc[df_trabajores['codigo'].astype(str)==cod_recaudo[0]]   
             if len(reg)>0:
                 self.movimientos.at[index, "Referencia"] = reg['nombre'].iloc[0] #lee la segunda columan el primer registro
-                recaudos = "TRABAJADOR" #+ str(reg['codigo'].iloc[0])
+                recaudos = "TRABAJADOR-" + str(reg['codigo'].iloc[0])
                 self.movimientos.at[index, "Procedencia"] = recaudos
                 continue
             

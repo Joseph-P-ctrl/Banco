@@ -24,6 +24,9 @@
         <li class="nav-item">
             <a class="nav-link " href="asiento">Asientos</a>
         </li>
+                        <li class="nav-item">
+                                <a class="nav-link " href="/correos">Correos</a>
+                        </li>
        
       </ul>
    </nav>
@@ -45,6 +48,16 @@
                     <p>{{ mensaje_exito }}</p>
                 {% endif %}
 
+                      <div class="row align-items-start mt-3">
+                        <div class="col">
+                            <div>
+                                <div  class="box input-group mb-3">
+                                    <input type="file" class="form-control" name="file" id="clientes" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" >
+                                    <label class="input-group-text" for="cli">CLIENTES:</label>
+                                </div>
+                            </div>
+                        </div>
+                      </div>
                 </span>
                 
                 <form method="POST" action="/basedatos" enctype="multipart/form-data">

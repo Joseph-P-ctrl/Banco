@@ -23,10 +23,12 @@ class BaseDatosService:
         RECAUDO = "RECAUDO"
         PREPAGO = "PREPAGO"
         TRABAJADOR = "TRABAJADOR"
+        CLIENTE = "CLIENTE"
         config = {
             "RECAUDOS": "CODIGO RECAUDO.xlsx",
             "PREPAGOS": "PREPAGOS.xlsx",
-            "TRABAJADORES": "TRABAJADORES.xlsx"
+            "TRABAJADORES": "TRABAJADORES.xlsx",
+            "CLIENTES": "CLIENTES.xlsx"
         }
         try:
             for file in files:
@@ -41,6 +43,9 @@ class BaseDatosService:
                     elif TRABAJADOR in filename : 
                         config["TRABAJADORES"] = filename   
                         self.removeFiles(TRABAJADOR)
+                    elif CLIENTE in filename:
+                        config["CLIENTES"] = filename
+                        self.removeFiles(CLIENTE)
                     file_path = os.path.join('BD', filename)
 
                     file.save(file_path)
