@@ -96,6 +96,7 @@ class AccountService:
                 recaudos = "TRABAJADOR-" + str(reg['codigo'].iloc[0])
                 self.movimientos.at[index, "Procedencia"] = recaudos
                 continue
+
             
             
            

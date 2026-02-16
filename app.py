@@ -46,6 +46,100 @@ def extract_emails_from_df(df):
                 emails.add(m)
     return sorted(emails)
 
+def extract_emails_without_voucher(df):
+    if df is None or len(df) == 0:
+        return []
+
+    candidate_cols = []
+    for col in df.columns:
+        normalized = str(col).strip().lower().replace('°', 'º')
+        if normalized in ['nº documento', 'nºdocumento', 'asientos', 'voucher contable']:
+            candidate_cols.append(col)
+        elif 'documento' in normalized or 'voucher' in normalized or 'asiento' in normalized:
+            candidate_cols.append(col)
+
+    if candidate_cols:
+        voucher_col = candidate_cols[0]
+        voucher_values = df[voucher_col]
+        empty_mask = voucher_values.isna() | (voucher_values.astype(str).str.strip() == '')
+        filtered_df = df.loc[empty_mask]
+    else:
+        filtered_df = df
+
+    return extract_emails_from_df(filtered_df)
+
+def normalize_reference(value):
+    return str(value).strip().upper()
+
+def extract_single_email(value):
+    if pd.isna(value):
+        return ''
+    matches = re.findall(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}", str(value))
+    if matches:
+        return matches[0].strip().lower()
+    return ''
+
+def build_clientes_email_map(df_clientes):
+    if df_clientes is None or len(df_clientes) == 0:
+        return {}
+
+    normalized_columns = [str(c).strip().lower() for c in df_clientes.columns]
+    if 'referencia' not in normalized_columns or 'correo de contacto' not in normalized_columns:
+        return {}
+
+    referencia_col = df_clientes.columns[normalized_columns.index('referencia')]
+    correo_col = df_clientes.columns[normalized_columns.index('correo de contacto')]
+
+    df_map = df_clientes[[referencia_col, correo_col]].copy()
+    df_map['referencia_key'] = df_map[referencia_col].apply(normalize_reference)
+    df_map['correo_clean'] = df_map[correo_col].apply(extract_single_email)
+    df_map = df_map[df_map['correo_clean'] != '']
+
+    return dict(zip(df_map['referencia_key'], df_map['correo_clean']))
+
+def get_no_voucher_mask(df):
+    if df is None or len(df) == 0:
+        return pd.Series(dtype=bool)
+
+    candidate_cols = []
+    for col in df.columns:
+        normalized = str(col).strip().lower().replace('°', 'º')
+        if normalized in ['nº documento', 'nºdocumento', 'asientos', 'voucher contable']:
+            candidate_cols.append(col)
+        elif 'documento' in normalized or 'voucher' in normalized or 'asiento' in normalized:
+            candidate_cols.append(col)
+
+    if candidate_cols:
+        voucher_col = candidate_cols[0]
+        voucher_values = df[voucher_col]
+        return voucher_values.isna() | (voucher_values.astype(str).str.strip() == '')
+
+    return pd.Series([True] * len(df), index=df.index)
+
+def collect_emails_without_voucher_using_clientes(df_movimientos, clientes_email_map):
+    if df_movimientos is None or len(df_movimientos) == 0 or not clientes_email_map:
+        return []
+
+    no_voucher_mask = get_no_voucher_mask(df_movimientos)
+    if len(no_voucher_mask) == 0:
+        return []
+
+    if 'Correo' not in df_movimientos.columns:
+        df_movimientos['Correo'] = ''
+
+    if 'Referencia' in df_movimientos.columns:
+        for index, row in df_movimientos.loc[no_voucher_mask].iterrows():
+            ref_key = normalize_reference(row.get('Referencia', ''))
+            if ref_key in clientes_email_map:
+                df_movimientos.at[index, 'Correo'] = clientes_email_map[ref_key]
+
+    emails = set()
+    for value in df_movimientos.loc[no_voucher_mask, 'Correo'].dropna():
+        clean_email = extract_single_email(value)
+        if clean_email:
+            emails.add(clean_email)
+    return sorted(emails)
+
 def extract_emails_from_excel_upload(file_storage):
     emails = set()
     email_regex = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
@@ -130,6 +224,11 @@ def guardaMovimientos(movimientos):
     worksheet.column_dimensions["L"].width = 40  
     worksheet.column_dimensions["M"].width = 35 
     worksheet.column_dimensions["N"].width = 40
+    for col in worksheet.iter_cols(min_row=1, max_row=1):
+        header_value = col[0].value
+        if header_value == 'Correo':
+            worksheet.column_dimensions[col[0].column_letter].width = 42
+            break
     ruta_archivo = files_path('movimientos.xlsx')
     workbook.save(ruta_archivo)
 
@@ -162,8 +261,6 @@ def basedatos():
 
             nombres = [f.filename.upper() for f in filtered_files]
             missing = []
-            if not any('CLIENTE' in n for n in nombres):
-                missing.append('CLIENTES')
             if not any('RECAUDO' in n for n in nombres):
                 missing.append('CODIGO RECAUDO')
             if not any('PREPAGO' in n for n in nombres):
@@ -204,7 +301,7 @@ def asiento_procesar():
             # detect files: movimientos, asientos, codigo (optional)
             movimientosfile = None
             asientosfile = None
-            codigofile = None
+            clientesfile = None
             for file in files:
                 nombre =  file.filename.upper()
                 if (nombre != ""):
@@ -212,29 +309,28 @@ def asiento_procesar():
                         movimientosfile = file
                     elif ASIENTO in nombre:
                         asientosfile = file
-                    elif 'CODIG' in nombre or 'CODIGO' in nombre:
-                        codigofile = file
+                    elif 'CLIENTE' in nombre:
+                        clientesfile = file
                     else:
                         # ignore unknown files for now
                         pass
 
-            if movimientosfile is None or asientosfile is None:
-                raise Exception('Faltan archivos Movimientos o Asientos')
+            if movimientosfile is None or asientosfile is None or clientesfile is None:
+                raise Exception('Faltan archivos requeridos: Movimientos, Asientos o Clientes')
+
+            df_clientes = pd.read_excel(clientesfile, header=0)
+            clientes_email_map = build_clientes_email_map(df_clientes)
 
             asientoService.conciliar(movimientosfile, asientosfile)
             #solo si hay asientos se completa en el cache
             if asientoService.df_movimientos is not None:
+                emails = collect_emails_without_voucher_using_clientes(asientoService.df_movimientos, clientes_email_map)
                 guardaAsientos(asientoService.df_movimientos)
-                # extraer correos desde movimientos resultantes + export/asientos original
-                emails = set(extract_emails_from_df(asientoService.df_movimientos))
-                if getattr(asientoService, 'df_asientos', None) is not None:
-                    emails.update(extract_emails_from_df(asientoService.df_asientos))
-                emails.update(extract_emails_from_excel_upload(asientosfile))
                 # guardar en session para uso posterior y redirigir al flujo de correos
-                sorted_emails = sorted(emails)
+                sorted_emails = sorted(set(emails))
                 session['asiento_emails'] = sorted_emails
                 if len(sorted_emails) == 0:
-                    session['asiento_email_warning'] = 'No se encontraron correos en el archivo EXPORT. Verifique que existan direcciones con @ o hipervínculos mailto:.'
+                    session['asiento_email_warning'] = 'No se encontraron correos para líneas sin voucher. Verifique Referencia y CORREO DE CONTACTO en el archivo Clientes.'
                 else:
                     session.pop('asiento_email_warning', None)
                 # guardaAsientos ya escribió files/asientos.xlsx, descargamos directamente
@@ -273,7 +369,7 @@ def correos():
         if os.path.exists(existing_path):
             try:
                 df = pd.read_excel(existing_path, header=0)
-                emails = extract_emails_from_df(df)
+                emails = extract_emails_without_voucher(df)
                 session['asiento_emails'] = emails
                 if warning_message:
                     return render_template('correos.html', emails=emails, mensaje_exito=warning_message)
@@ -296,9 +392,7 @@ def correos():
             df = pd.read_excel(file, header=0)
             file.stream.seek(0)
 
-        emails = extract_emails_from_df(df)
-        if not request.form.get('use_existing'):
-            emails = sorted(set(emails).union(set(extract_emails_from_excel_upload(file))))
+        emails = extract_emails_without_voucher(df)
         session['asiento_emails'] = emails
         return render_template('correos.html', emails=emails)
     except Exception as ex:

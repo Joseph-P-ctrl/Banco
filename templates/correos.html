@@ -20,23 +20,6 @@
 
 <div class="container text-center">
     <h1>Correos</h1>
-    <p>Sube el archivo resultante del procesamiento de Asientos (por ejemplo `asientos.xlsx`) para extraer los correos.</p>
-
-    <form method="POST" action="/correos" enctype="multipart/form-data">
-        <div class="mb-3">
-            <input type="file" class="form-control" name="file" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
-        </div>
-        <div class="mb-3">
-            <button class="btn btn-primary" type="submit">Procesar</button>
-        </div>
-    </form>
-    <div class="mt-3">
-        <form method="POST" action="/correos">
-            <input type="hidden" name="use_existing" value="1">
-            <button class="btn btn-secondary" type="submit">Procesar archivo de Asientos existente</button>
-        </form>
-        <p class="small text-muted mt-2">Procesa `files/asientos.xlsx` creado por la acción en Asientos (si existe).</p>
-    </div>
 
     {% if emails is defined %}
         <div class="card p-3 mt-3">
@@ -53,6 +36,11 @@
             {% else %}
                 <p>No se detectaron correos en el archivo.</p>
             {% endif %}
+        </div>
+    {% else %}
+        <div class="card p-3 mt-3">
+            <h5>Correos detectados</h5>
+            <p>No hay correos para mostrar. Procesa Asientos para generar los correos automáticamente.</p>
         </div>
     {% endif %}
 
