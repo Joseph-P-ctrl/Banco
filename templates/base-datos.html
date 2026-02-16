@@ -19,10 +19,10 @@
           <a class="nav-link " href="/">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active" href="basedatos">Base de Datos</a>
+                    <a class="nav-link active" href="/basedatos">Base de Datos</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link " href="asiento">Asientos</a>
+                        <a class="nav-link " href="/asiento">Asientos</a>
         </li>
                         <li class="nav-item">
                                 <a class="nav-link " href="/correos">Correos</a>
@@ -47,20 +47,19 @@
                 {% if mensaje_exito %}
                     <p>{{ mensaje_exito }}</p>
                 {% endif %}
-
-                      <div class="row align-items-start mt-3">
-                        <div class="col">
-                            <div>
-                                <div  class="box input-group mb-3">
-                                    <input type="file" class="form-control" name="file" id="clientes" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" >
-                                    <label class="input-group-text" for="cli">CLIENTES:</label>
-                                </div>
-                            </div>
-                        </div>
-                      </div>
                 </span>
                 
                 <form method="POST" action="/basedatos" enctype="multipart/form-data">
+                    <div class="row align-items-start mt-3">
+                        <div class="col">
+                            <div>
+                                <div  class="box input-group mb-3">
+                                    <input type="file" class="form-control" name="file" id="clientes" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+                                    <label class="input-group-text" for="clientes">CLIENTES:</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     
                     
@@ -70,7 +69,7 @@
                             <div >
                                 <div  class="box input-group mb-3">
                                 
-                                    <input type="file" class="form-control" name="file" id="codigo" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                                    <input type="file" class="form-control" name="file" id="codigo" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
                                     <label class="input-group-text" for="pro">CODIGO RECAUDO:</label>
                                 </div>
                             </div>
@@ -80,7 +79,7 @@
                             <div>
                                 <div  class="box input-group mb-3">
                                 
-                                    <input type="file" class="form-control" name="file" id="prepago"  accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                                    <input type="file" class="form-control" name="file" id="prepago"  accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
                                     <label class="input-group-text" for="int">PREPAGOS:</label>
                                 </div>
                             </div>
@@ -91,7 +90,7 @@
         
                                 <div  class="box input-group mb-3">
                                     
-                                    <input type="file" class="form-control" name="file" id="trabajores" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" >
+                                    <input type="file" class="form-control" name="file" id="trabajores" accept="application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
                                     <label class="input-group-text" for="tra">TRABAJADORES:</label>
                                 </div>
                             </div>

@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 from datetime import datetime
+import re
 
 class MyCustomException(Exception):
         pass
@@ -54,6 +55,20 @@ class AsientoService:
             # Ensure Asientos column exists so downstream code/tests can access it
             if 'Asientos' not in self.df_movimientos.columns:
                 self.df_movimientos['Asientos'] = ''
+            # Persist detected email(s) from asiento rows into output file for downstream extraction
+            if 'Correos' not in self.df_movimientos.columns:
+                self.df_movimientos['Correos'] = ''
+
+            email_regex = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+
+            def extract_emails_from_row(row):
+                emails = set()
+                for value in row.values:
+                    if pd.notna(value):
+                        for m in email_regex.findall(str(value)):
+                            emails.add(m)
+                return sorted(emails)
+
             # normalize Fecha de documento to datetime for proper comparison
             self.df_asientos["Fecha de documento"] = pd.to_datetime(self.df_asientos["Fecha de documento"], dayfirst=True, errors='coerce')
             print('tipos', self.df_asientos.dtypes)
@@ -61,12 +76,20 @@ class AsientoService:
                 # try exact match by asignacion and date
                 reg = self.df_asientos.loc[(self.df_asientos['Asignacion_new'] == row["Operacion_new"]) & (self.df_asientos["Fecha de documento"]==row["Fecha"])]
                 if len(reg) == 1:
-                    self.df_movimientos.loc[index, "Asientos"] = reg['Nº documento'].iloc[0]
+                    matched_row = reg.iloc[0]
+                    self.df_movimientos.loc[index, "Asientos"] = matched_row['Nº documento']
+                    matched_emails = extract_emails_from_row(matched_row)
+                    if matched_emails:
+                        self.df_movimientos.loc[index, "Correos"] = ", ".join(matched_emails)
                 else:
                     # fallback: match by asignacion only (some records may not match by date)
                     reg2 = self.df_asientos.loc[self.df_asientos['Asignacion_new'] == row["Operacion_new"]]
                     if len(reg2) >= 1:
-                        self.df_movimientos.loc[index, "Asientos"] = reg2['Nº documento'].iloc[0]
+                        matched_row = reg2.iloc[0]
+                        self.df_movimientos.loc[index, "Asientos"] = matched_row['Nº documento']
+                        matched_emails = extract_emails_from_row(matched_row)
+                        if matched_emails:
+                            self.df_movimientos.loc[index, "Correos"] = ", ".join(matched_emails)
             self.df_movimientos = self.df_movimientos.drop('Operacion_new', axis=1)
                
         except Exception as ex:
