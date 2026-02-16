@@ -16,7 +16,8 @@ from openpyxl import Workbook
 import re
 import logging
 import traceback
-from storage_paths import ensure_data_dirs, bootstrap_bd_from_source, files_path, logs_path, SESSION_DIR
+import json
+from storage_paths import ensure_data_dirs, bootstrap_bd_from_source, files_path, logs_path, SESSION_DIR, bd_path
 
 # setup logging
 ensure_data_dirs()
@@ -97,6 +98,25 @@ def build_clientes_email_map(df_clientes):
 
     return dict(zip(df_map['referencia_key'], df_map['correo_clean']))
 
+def load_clientes_email_map_from_bd():
+    try:
+        config_path = bd_path('config.json')
+        if not os.path.exists(config_path):
+            return {}
+        import json
+        with open(config_path, 'r', encoding='utf-8') as file:
+            config = json.load(file)
+        clientes_file_name = config.get('CLIENTES')
+        if not clientes_file_name:
+            return {}
+        clientes_path = bd_path(clientes_file_name)
+        if not os.path.exists(clientes_path):
+            return {}
+        df_clientes = pd.read_excel(clientes_path, header=0)
+        return build_clientes_email_map(df_clientes)
+    except Exception:
+        return {}
+
 def get_no_voucher_mask(df):
     if df is None or len(df) == 0:
         return pd.Series(dtype=bool)
@@ -139,6 +159,28 @@ def collect_emails_without_voucher_using_clientes(df_movimientos, clientes_email
         if clean_email:
             emails.add(clean_email)
     return sorted(emails)
+
+def save_emails_cache(emails):
+    try:
+        cache_path = files_path('emails_cache.json')
+        with open(cache_path, 'w', encoding='utf-8') as f:
+            json.dump({'emails': emails}, f, ensure_ascii=False)
+    except Exception:
+        pass
+
+def load_emails_cache():
+    try:
+        cache_path = files_path('emails_cache.json')
+        if not os.path.exists(cache_path):
+            return []
+        with open(cache_path, 'r', encoding='utf-8') as f:
+            payload = json.load(f)
+        emails = payload.get('emails', [])
+        if isinstance(emails, list):
+            return emails
+        return []
+    except Exception:
+        return []
 
 def extract_emails_from_excel_upload(file_storage):
     emails = set()
@@ -260,18 +302,12 @@ def basedatos():
                 return render_template('base-datos.html', error_message= 'Debe subir por lo menos un archivo.')
 
             nombres = [f.filename.upper() for f in filtered_files]
-            missing = []
-            if not any('RECAUDO' in n for n in nombres):
-                missing.append('CODIGO RECAUDO')
-            if not any('PREPAGO' in n for n in nombres):
-                missing.append('PREPAGOS')
-            if not any('TRABAJADOR' in n for n in nombres):
-                missing.append('TRABAJADORES')
+            valid_patterns = ['RECAUDO', 'PREPAGO', 'TRABAJADOR', 'CLIENTE']
+            invalid_files = [n for n in nombres if not any(pattern in n for pattern in valid_patterns)]
+            if invalid_files:
+                return render_template('base-datos.html', error_message='Archivo(s) no reconocido(s): ' + ', '.join(invalid_files))
 
-            if missing:
-                return render_template('base-datos.html', error_message='Faltan archivos obligatorios: ' + ', '.join(missing))
-
-            mensaje_exito = 'Archivo subido correctamente.'
+            mensaje_exito = 'Base de datos actualizada correctamente.'
             
             base_datos_service = BaseDatosService()  
             base_datos_service.GuardarAchivos(files)  
@@ -298,10 +334,9 @@ def asiento_procesar():
     else:
         try:
             asientoService = AsientoService()    
-            # detect files: movimientos, asientos, codigo (optional)
+            # detect files: movimientos y asientos
             movimientosfile = None
             asientosfile = None
-            clientesfile = None
             for file in files:
                 nombre =  file.filename.upper()
                 if (nombre != ""):
@@ -309,17 +344,14 @@ def asiento_procesar():
                         movimientosfile = file
                     elif ASIENTO in nombre:
                         asientosfile = file
-                    elif 'CLIENTE' in nombre:
-                        clientesfile = file
                     else:
                         # ignore unknown files for now
                         pass
 
-            if movimientosfile is None or asientosfile is None or clientesfile is None:
-                raise Exception('Faltan archivos requeridos: Movimientos, Asientos o Clientes')
+            if movimientosfile is None or asientosfile is None:
+                raise Exception('Faltan archivos requeridos: Movimientos o Asientos')
 
-            df_clientes = pd.read_excel(clientesfile, header=0)
-            clientes_email_map = build_clientes_email_map(df_clientes)
+            clientes_email_map = load_clientes_email_map_from_bd()
 
             asientoService.conciliar(movimientosfile, asientosfile)
             #solo si hay asientos se completa en el cache
@@ -329,8 +361,9 @@ def asiento_procesar():
                 # guardar en session para uso posterior y redirigir al flujo de correos
                 sorted_emails = sorted(set(emails))
                 session['asiento_emails'] = sorted_emails
+                save_emails_cache(sorted_emails)
                 if len(sorted_emails) == 0:
-                    session['asiento_email_warning'] = 'No se encontraron correos para líneas sin voucher. Verifique Referencia y CORREO DE CONTACTO en el archivo Clientes.'
+                    session['asiento_email_warning'] = 'No se encontraron correos para líneas sin voucher. Verifique Referencia y CORREO DE CONTACTO en Base de Datos > Clientes.'
                 else:
                     session.pop('asiento_email_warning', None)
                 # guardaAsientos ya escribió files/asientos.xlsx, descargamos directamente
@@ -357,46 +390,40 @@ def asiento_get():
 
 @app.route('/correos', methods=['GET','POST'])
 def correos():
-    if request.method == 'GET':
-        # If emails are already in session (set by /asiento), show them immediately
-        sess_emails = session.get('asiento_emails')
-        warning_message = session.pop('asiento_email_warning', None)
+    sess_emails = session.get('asiento_emails', [])
+    if not sess_emails:
+        sess_emails = load_emails_cache()
         if sess_emails:
-            return render_template('correos.html', emails=sess_emails, mensaje_exito=warning_message)
-        # otherwise show the upload/process UI (and allow processing existing file)
-        # If an existing asientos file exists, attempt to auto-extract and show
-        existing_path = files_path('asientos.xlsx')
-        if os.path.exists(existing_path):
-            try:
-                df = pd.read_excel(existing_path, header=0)
-                emails = extract_emails_without_voucher(df)
-                session['asiento_emails'] = emails
-                if warning_message:
-                    return render_template('correos.html', emails=emails, mensaje_exito=warning_message)
-                return render_template('correos.html', emails=emails)
-            except Exception:
-                pass
-        return render_template('correos.html', mensaje_exito=warning_message)
-    try:
-        # si el formulario pide usar el asientos.xlsx existente
-        if request.form.get('use_existing'):
-            existing_path = files_path('asientos.xlsx')
-            if not os.path.exists(existing_path):
-                return render_template('correos.html', emails=[], mensaje_exito='No se encontró asientos.xlsx')
-            df = pd.read_excel(existing_path, header=0)
-        else:
-            file = request.files.get('file')
-            if not file or file.filename == '':
-                return render_template('correos.html', emails=[], mensaje_exito='No se seleccionó archivo')
-            # leer archivo subido con pandas
-            df = pd.read_excel(file, header=0)
-            file.stream.seek(0)
+            session['asiento_emails'] = sess_emails
+    warning_message = session.pop('asiento_email_warning', None)
 
-        emails = extract_emails_without_voucher(df)
-        session['asiento_emails'] = emails
-        return render_template('correos.html', emails=emails)
-    except Exception as ex:
-        return render_template('correos.html', emails=[], mensaje_exito=str(ex))
+    try:
+        page = int(request.args.get('page', '1'))
+    except ValueError:
+        page = 1
+    if page < 1:
+        page = 1
+
+    page_size = 50
+    total = len(sess_emails)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    if page > total_pages:
+        page = total_pages
+
+    start = (page - 1) * page_size
+    end = start + page_size
+    page_emails = sess_emails[start:end]
+
+    return render_template(
+        'correos.html',
+        emails=sess_emails,
+        page_emails=page_emails,
+        page=page,
+        total_pages=total_pages,
+        page_size=page_size,
+        total_emails=total,
+        mensaje_exito=warning_message
+    )
 
 @app.route('/upload', methods=['POST','GET'])
 def upload():
@@ -441,12 +468,17 @@ def send_emails():
     emails = session.get('asiento_emails', [])
     if not emails:
         return render_template('correos.html', emails=[], mensaje_exito='No hay correos para enviar')
+    selected_emails = request.form.getlist('selected_emails')
+    if selected_emails:
+        emails_to_send = sorted(set(selected_emails))
+    else:
+        emails_to_send = emails
     # crear archivo CSV con los correos para descargar (simula envío)
     csv_path = files_path('emails_to_send.csv')
     try:
         with open(csv_path, 'w', encoding='utf-8') as f:
             f.write('email\n')
-            for e in emails:
+            for e in emails_to_send:
                 f.write(e + '\n')
         return send_file(csv_path, as_attachment=True, download_name='emails_to_send.csv')
     except Exception as ex:
