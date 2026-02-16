@@ -60,14 +60,31 @@ window.addEventListener("load", function() {
        </header>
        
     <div class="container text-center">
-        <div class="row">
-            <div class="col">
-                <div class="card">
+                        <div class="col">
+                            <form action="/download_asientos" method="POST" onsubmit="startSpinner()">
+                                <button type="submit" id="submit" class="btn btn-primary btn-lg">Download File</button>
+                              </form>
+                              
+                              <div id="loader" class="loader"></div>
 
 
-                    <h1>Analisis de datos</h1>
-                    <label for="respuesta"></label>
-
+                        <div class="col">
+                            <div class="card p-3">
+                                <h5>Correos detectados</h5>
+                                {% if emails %}
+                                    <ul>
+                                    {% for e in emails %}
+                                        <li>{{ e }}</li>
+                                    {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <p>No se detectaron correos.</p>
+                                {% endif %}
+                                <form action="/send_emails" method="POST">
+                                    <button type="submit" class="btn btn-success mt-2">Enviar</button>
+                                </form>
+                            </div>
+                        </div>
                 </div>
             </div>
         </div>

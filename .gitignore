@@ -275,3 +275,4 @@ pip-selfcheck.json
 # End of https://www.toptal.com/developers/gitignore/api/flask,venv,python
 
 **/flask_session/
+.vercel

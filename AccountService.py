@@ -4,6 +4,7 @@ import re
 import numpy as np
 import json
 from datetime import datetime
+from storage_paths import bd_path
 
 class MyCustomException(Exception):
         pass
@@ -23,16 +24,13 @@ class AccountService:
         self.error = Error()
      
     def read_recaudos(self,config):
-        recaudos = "BD/CODIGO RECAUDO.xlsx"
-        recaudos = os.path.join('BD', config["RECAUDOS"])
+        recaudos = bd_path(config["RECAUDOS"])
         return pd.read_excel(recaudos)
     def read_prepagos(self,config):
-        prepagos = "BD/PREPAGOS.xlsx"
-        prepagos = os.path.join('BD', config["PREPAGOS"])
+        prepagos = bd_path(config["PREPAGOS"])
         return pd.read_excel(prepagos, header=None)
     def read_trabajadores(self,config):
-        trabajadores = "BD/TRABAJORES.xlsx"
-        trabajadores = os.path.join('BD', config["TRABAJADORES"])
+        trabajadores = bd_path(config["TRABAJADORES"])
         return pd.read_excel(trabajadores, header=None)
     
     def _process_movements_df(self, df_movimientos):
@@ -47,7 +45,7 @@ class AccountService:
         
         
 
-        with open('BD/config.json', 'r') as file:
+        with open(bd_path('config.json'), 'r') as file:
             config = json.load(file)
             
             # Leer el archivo Excel
@@ -87,7 +85,7 @@ class AccountService:
             reg = df_prepagos.loc[df_prepagos['codigo'].astype(str)==cod_recaudo[0]]   
             if len(reg)>0:
                 self.movimientos.at[index, "Referencia"] = reg['nombre'].iloc[0] #lee la segunda columan el primer registro
-                recaudos = "PREPAGO" #+ str(reg['codigo'].iloc[0])
+                recaudos = "PREPAGO-" + str(reg['codigo'].iloc[0])
                 self.movimientos.at[index, "Procedencia"] = recaudos
                 
                 continue
@@ -95,9 +93,10 @@ class AccountService:
             reg = df_trabajores.loc[df_trabajores['codigo'].astype(str)==cod_recaudo[0]]   
             if len(reg)>0:
                 self.movimientos.at[index, "Referencia"] = reg['nombre'].iloc[0] #lee la segunda columan el primer registro
-                recaudos = "TRABAJADOR" #+ str(reg['codigo'].iloc[0])
+                recaudos = "TRABAJADOR-" + str(reg['codigo'].iloc[0])
                 self.movimientos.at[index, "Procedencia"] = recaudos
                 continue
+
             
             
            
