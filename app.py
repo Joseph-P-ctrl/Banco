@@ -17,6 +17,8 @@ import re
 import logging
 import traceback
 import json
+import smtplib
+from email.message import EmailMessage
 from storage_paths import ensure_data_dirs, bootstrap_bd_from_source, files_path, logs_path, SESSION_DIR, bd_path
 
 # setup logging
@@ -181,6 +183,30 @@ def load_emails_cache():
         return []
     except Exception:
         return []
+
+def render_correos_page(emails=None, mensaje_exito=None, page=1):
+    if emails is None:
+        emails = []
+    page_size = 50
+    total = len(emails)
+    total_pages = max(1, (total + page_size - 1) // page_size)
+    if page < 1:
+        page = 1
+    if page > total_pages:
+        page = total_pages
+    start = (page - 1) * page_size
+    end = start + page_size
+    page_emails = emails[start:end]
+    return render_template(
+        'correos.html',
+        emails=emails,
+        page_emails=page_emails,
+        page=page,
+        total_pages=total_pages,
+        page_size=page_size,
+        total_emails=total,
+        mensaje_exito=mensaje_exito
+    )
 
 def extract_emails_from_excel_upload(file_storage):
     emails = set()
@@ -404,26 +430,7 @@ def correos():
     if page < 1:
         page = 1
 
-    page_size = 50
-    total = len(sess_emails)
-    total_pages = max(1, (total + page_size - 1) // page_size)
-    if page > total_pages:
-        page = total_pages
-
-    start = (page - 1) * page_size
-    end = start + page_size
-    page_emails = sess_emails[start:end]
-
-    return render_template(
-        'correos.html',
-        emails=sess_emails,
-        page_emails=page_emails,
-        page=page,
-        total_pages=total_pages,
-        page_size=page_size,
-        total_emails=total,
-        mensaje_exito=warning_message
-    )
+    return render_correos_page(emails=sess_emails, mensaje_exito=warning_message, page=page)
 
 @app.route('/upload', methods=['POST','GET'])
 def upload():
@@ -467,22 +474,57 @@ def dowload_asientos():
 def send_emails():
     emails = session.get('asiento_emails', [])
     if not emails:
-        return render_template('correos.html', emails=[], mensaje_exito='No hay correos para enviar')
+        return render_correos_page(emails=[], mensaje_exito='No hay correos para enviar', page=1)
     selected_emails = request.form.getlist('selected_emails')
     if selected_emails:
         emails_to_send = sorted(set(selected_emails))
     else:
         emails_to_send = emails
-    # crear archivo CSV con los correos para descargar (simula envío)
-    csv_path = files_path('emails_to_send.csv')
+    sender = os.environ.get('GMAIL_SENDER', '').strip()
+    app_password = os.environ.get('GMAIL_APP_PASSWORD', '').strip()
+    subject = os.environ.get('GMAIL_SUBJECT', 'Notificación de Atención')
+    body = os.environ.get('GMAIL_BODY', 'Estimado(a),\n\nSe comparte la notificación correspondiente.\n\nSaludos.')
+
+    if not sender or not app_password:
+        return render_correos_page(
+            emails=emails,
+            mensaje_exito='Falta configurar Gmail. Define GMAIL_SENDER y GMAIL_APP_PASSWORD (App Password de Gmail).',
+            page=1
+        )
+
+    sent_ok = []
+    sent_fail = []
     try:
-        with open(csv_path, 'w', encoding='utf-8') as f:
-            f.write('email\n')
-            for e in emails_to_send:
-                f.write(e + '\n')
-        return send_file(csv_path, as_attachment=True, download_name='emails_to_send.csv')
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=30) as smtp:
+            smtp.login(sender, app_password)
+            for recipient in emails_to_send:
+                try:
+                    msg = EmailMessage()
+                    msg['Subject'] = subject
+                    msg['From'] = sender
+                    msg['To'] = recipient
+                    msg.set_content(body)
+                    smtp.send_message(msg)
+                    sent_ok.append(recipient)
+                except Exception as send_ex:
+                    sent_fail.append(f"{recipient}: {send_ex}")
+
+        report_path = files_path('emails_send_report.csv')
+        with open(report_path, 'w', encoding='utf-8') as report:
+            report.write('estado,email,detalle\n')
+            for ok in sent_ok:
+                report.write(f'sent,{ok},ok\n')
+            for fail in sent_fail:
+                email_part = fail.split(':', 1)[0]
+                detail_part = fail.split(':', 1)[1].strip() if ':' in fail else 'error'
+                report.write(f'failed,{email_part},"{detail_part}"\n')
+
+        message = f"Envío finalizado. Enviados: {len(sent_ok)}. Fallidos: {len(sent_fail)}."
+        if len(sent_fail) > 0:
+            message += ' Revisa emails_send_report.csv para detalles.'
+        return render_correos_page(emails=emails, mensaje_exito=message, page=1)
     except Exception as ex:
-        return render_template('correos.html', emails=[], mensaje_exito=str(ex))
+        return render_correos_page(emails=emails, mensaje_exito='Error enviando por Gmail: ' + str(ex), page=1)
 
 
 
