@@ -276,3 +276,13 @@ pip-selfcheck.json
 
 **/flask_session/
 .vercel
+
+# Local runtime/generated data
+files/smtp_credentials.json
+files/smtp_credentials.key
+files/emails_cache.json
+files/emails_send_report.csv
+files/asientos.xlsx
+files/movimientos.xlsx
+files/recaudos.xlsx
+files/vouchers/*.pdf
