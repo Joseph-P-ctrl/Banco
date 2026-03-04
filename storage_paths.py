@@ -5,17 +5,17 @@ import shutil
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SOURCE_BD_DIR = os.path.join(BASE_DIR, 'BD')
 
-IS_VERCEL = os.environ.get('VERCEL') == '1' or bool(os.environ.get('VERCEL_ENV'))
-DATA_ROOT = os.environ.get('BANCOS_DATA_DIR') or ('/tmp/bancos_data' if IS_VERCEL else BASE_DIR)
+DATA_ROOT = os.environ.get('BANCOS_DATA_DIR') or BASE_DIR
 
 BD_DIR = os.path.join(DATA_ROOT, 'BD')
 FILES_DIR = os.path.join(DATA_ROOT, 'files')
 LOGS_DIR = os.path.join(DATA_ROOT, 'logs')
 SESSION_DIR = os.path.join(DATA_ROOT, 'flask_session')
+VOUCHERS_DIR = os.path.join(FILES_DIR, 'vouchers')
 
 
 def ensure_data_dirs():
-    for directory in [DATA_ROOT, BD_DIR, FILES_DIR, LOGS_DIR, SESSION_DIR]:
+    for directory in [DATA_ROOT, BD_DIR, FILES_DIR, LOGS_DIR, SESSION_DIR, VOUCHERS_DIR]:
         os.makedirs(directory, exist_ok=True)
 
 
@@ -43,3 +43,7 @@ def logs_path(*parts):
 
 def session_path(*parts):
     return os.path.join(SESSION_DIR, *parts)
+
+
+def vouchers_path(*parts):
+    return os.path.join(VOUCHERS_DIR, *parts)
